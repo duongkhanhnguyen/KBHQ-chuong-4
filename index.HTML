@@ -1,0 +1,1224 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Phần Mềm Khai Báo Hải Quan & Thuế - Giảng Dạy Chương 4</title>
+    <!-- Tailwind CSS CDN -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- Lucide Icons -->
+    <script src="https://unpkg.com/lucide@latest"></script>
+    <!-- Chart.js -->
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <!-- html2pdf.js (Xuất PDF chất lượng cao) -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
+    
+    <!-- Custom Theme Colors -->
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    colors: {
+                        brand: {
+                            blue: '#0284c7',
+                            lightblue: '#e0f2fe',
+                            softblue: '#f0f9ff',
+                            yellow: '#fef9c3',
+                            darkyellow: '#a16207',
+                            red: '#dc2626',
+                            brightred: '#ef4444',
+                            lightred: '#fef2f2'
+                        }
+                    }
+                }
+            }
+        }
+    </script>
+    <style>
+        .active-tab {
+            background-color: #0284c7 !important;
+            color: #ffffff !important;
+            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
+        }
+        .method-step.active {
+            border-color: #0284c7;
+            background-color: #e0f2fe;
+        }
+        /* Style dành riêng cho bản in / xuất PDF */
+        .pdf-page {
+            font-family: 'Arial', sans-serif;
+            color: #000;
+            background: #fff;
+            padding: 20px;
+        }
+    </style>
+</head>
+<body class="bg-slate-50 text-slate-800 min-h-screen flex flex-col font-sans">
+
+    <!-- HEADER / NAVIGATION BAR -->
+    <header class="bg-gradient-to-r from-sky-700 via-sky-600 to-sky-800 text-white shadow-lg sticky top-0 z-50">
+        <div class="max-w-7xl mx-auto px-4 py-3 flex flex-col md:flex-row items-center justify-between gap-4">
+            <div class="flex items-center gap-3">
+                <div class="bg-white p-2 rounded-lg text-sky-700 shadow-inner">
+                    <i data-lucide="calculator" class="w-8 h-8"></i>
+                </div>
+                <div>
+                    <h1 class="text-xl font-bold tracking-tight uppercase flex items-center gap-2">
+                        Phần Mềm Mô Phỏng Thuế & Hải Quan
+                        <span class="bg-brand-brightred text-white text-xs px-2 py-0.5 rounded-full font-normal shadow">Dành Cho Giảng Dạy</span>
+                    </h1>
+                    <p class="text-xs text-sky-100 italic">Hệ thống Trực quan hóa Chương 4: Thuế & Trị giá Hải quan theo Chuẩn WTO</p>
+                </div>
+            </div>
+
+            <!-- Tab Navigation Buttons -->
+            <nav class="flex flex-wrap gap-1 bg-sky-900/40 p-1.5 rounded-xl border border-sky-400/30 items-center">
+                <button onclick="switchTab('theory')" id="btn-theory" class="tab-btn active-tab px-3 py-1.5 rounded-lg text-xs md:text-sm font-semibold flex items-center gap-1.5 transition-all hover:bg-white/20">
+                    <i data-lucide="book-open" class="w-4 h-4"></i> Lý Thuyết
+                </button>
+                <button onclick="switchTab('simulation')" id="btn-simulation" class="tab-btn px-3 py-1.5 rounded-lg text-xs md:text-sm font-semibold flex items-center gap-1.5 transition-all hover:bg-white/20">
+                    <i data-lucide="cpu" class="w-4 h-4"></i> Tính Thuế
+                </button>
+                <button onclick="switchTab('methods')" id="btn-methods" class="tab-btn px-3 py-1.5 rounded-lg text-xs md:text-sm font-semibold flex items-center gap-1.5 transition-all hover:bg-white/20">
+                    <i data-lucide="git-merge" class="w-4 h-4"></i> 6 Phương Pháp
+                </button>
+                <button onclick="switchTab('exercises')" id="btn-exercises" class="tab-btn px-3 py-1.5 rounded-lg text-xs md:text-sm font-semibold flex items-center gap-1.5 transition-all hover:bg-white/20">
+                    <i data-lucide="file-spreadsheet" class="w-4 h-4"></i> Bài Tập Minh Họa
+                </button>
+                <!-- TAB BỔ SUNG: KIỂM TRA -->
+                <button onclick="switchTab('exam')" id="btn-exam" class="tab-btn px-3 py-1.5 rounded-lg text-xs md:text-sm font-semibold flex items-center gap-1.5 transition-all bg-emerald-600 hover:bg-emerald-500 text-white shadow">
+                    <i data-lucide="pen-tool" class="w-4 h-4"></i> Kiểm Tra (30 Bài)
+                </button>
+                <!-- NÚT GV BỔ SUNG -->
+                <button onclick="openGVModal()" class="px-3 py-1.5 rounded-lg text-xs md:text-sm font-bold flex items-center gap-1 bg-amber-400 hover:bg-amber-300 text-slate-900 shadow transition-all ml-1">
+                    <i data-lucide="lock" class="w-4 h-4"></i> 
+                </button>
+            </nav>
+        </div>
+    </header>
+
+    <!-- MAIN CONTENT AREA -->
+    <main class="flex-1 max-w-7xl w-full mx-auto p-4 md:p-6">
+
+        <!-- TAB 1: LÝ THUYẾT TÓM TẮT -->
+        <section id="tab-theory" class="tab-content space-y-6">
+            <div class="bg-brand-lightblue border-l-4 border-brand-blue p-5 rounded-r-xl shadow-sm flex items-start gap-4">
+                <i data-lucide="graduation-cap" class="w-10 h-10 text-brand-blue shrink-0 mt-1"></i>
+                <div>
+                    <h2 class="text-xl font-bold text-sky-900">Mục Tiêu Học Tập - Chương 4: Thuế & Trị Giá Hải Quan</h2>
+                    <p class="text-sm text-sky-800 mt-1">Trang bị kiến thức cốt lõi về bản chất thuế xuất nhập khẩu, 6 phương pháp xác định trị giá hải quan WTO, thứ tự tính thuế chuẩn pháp luật và các khoản điều chỉnh cộng/trừ trong khai báo thực tế.</p>
+                </div>
+            </div>
+
+            <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
+                <!-- Thuế Nhập Khẩu -->
+                <div class="bg-white rounded-xl shadow-md border border-slate-200 overflow-hidden hover:shadow-lg transition-all">
+                    <div class="bg-brand-lightblue p-4 border-b border-sky-100 flex items-center justify-between">
+                        <h3 class="font-bold text-sky-900 flex items-center gap-2">
+                            <i data-lucide="arrow-down-left" class="w-5 h-5 text-brand-blue"></i> Thuế Nhập Khẩu (Import Duty)
+                        </h3>
+                        <span class="bg-sky-200 text-sky-800 text-xs px-2 py-0.5 rounded font-bold">Cơ bản</span>
+                    </div>
+                    <div class="p-4 space-y-3 text-sm">
+                        <p class="text-slate-600">Đánh vào hàng hóa nhập khẩu qua biên giới Việt Nam nhằm bảo hộ sản xuất trong nước và thu ngân sách.</p>
+                        <div class="bg-slate-50 p-3 rounded-lg border border-slate-200">
+                            <span class="font-semibold text-slate-700 block mb-1">Công thức:</span>
+                            <code class="text-brand-blue font-bold">Thuế NK = Trị giá Hải quan × Thuế suất</code>
+                        </div>
+                        <ul class="text-xs space-y-1 text-slate-600 list-disc list-inside">
+                            <li><b>MFN (Ưu đãi):</b> Áp dụng cho các nước WTO.</li>
+                            <li><b>FTA (Ưu đãi đặc biệt):</b> Áp dụng khi có C/O hợp lệ.</li>
+                            <li><b>Thông thường:</b> = 150% Thuế MFN.</li>
+                        </ul>
+                    </div>
+                </div>
+
+                <!-- Thuế TTĐB & Phòng Vệ -->
+                <div class="bg-white rounded-xl shadow-md border border-slate-200 overflow-hidden hover:shadow-lg transition-all">
+                    <div class="bg-brand-yellow p-4 border-b border-amber-200 flex items-center justify-between">
+                        <h3 class="font-bold text-amber-900 flex items-center gap-2">
+                            <i data-lucide="shield-alert" class="w-5 h-5 text-brand-darkyellow"></i> Thuế TTĐB & Phòng Vệ
+                        </h3>
+                        <span class="bg-amber-200 text-amber-900 text-xs px-2 py-0.5 rounded font-bold">Đặc thù</span>
+                    </div>
+                    <div class="p-4 space-y-3 text-sm">
+                        <p class="text-slate-600">Áp dụng cho mặt hàng đặc thù (rượu, bia, ô tô...) hoặc bảo vệ ngành sản xuất nội địa khỏi bán phá giá.</p>
+                        <div class="bg-slate-50 p-3 rounded-lg border border-slate-200">
+                            <span class="font-semibold text-slate-700 block mb-1">Công thức TTĐB:</span>
+                            <code class="text-brand-darkyellow font-bold">Thuế TTĐB = (CIF + Thuế NK) × Thuế suất TTĐB</code>
+                        </div>
+                        <p class="text-xs text-slate-600">Bao gồm: Thuế chống bán phá giá (Anti-Dumping), Thuế chống trợ cấp, Thuế tự vệ.</p>
+                    </div>
+                </div>
+
+                <!-- Thuế GTGT (VAT) -->
+                <div class="bg-white rounded-xl shadow-md border border-slate-200 overflow-hidden hover:shadow-lg transition-all">
+                    <div class="bg-brand-lightred p-4 border-b border-red-100 flex items-center justify-between">
+                        <h3 class="font-bold text-red-900 flex items-center gap-2">
+                            <i data-lucide="receipt" class="w-5 h-5 text-brand-red"></i> Thuế GTGT (VAT) Hàng Nhập
+                        </h3>
+                        <span class="bg-red-200 text-red-900 text-xs px-2 py-0.5 rounded font-bold">Khâu cuối</span>
+                    </div>
+                    <div class="p-4 space-y-3 text-sm">
+                        <p class="text-slate-600">Thuế gián thu đánh vào giá trị tăng thêm của hàng hóa, thu ngay tại khâu nhập khẩu.</p>
+                        <div class="bg-slate-50 p-3 rounded-lg border border-slate-200">
+                            <span class="font-semibold text-slate-700 block mb-1">Giá tính VAT:</span>
+                            <code class="text-brand-red font-bold text-xs block">Giá tính VAT = CIF + Thuế NK + Thuế TTĐB + Thuế PVTM</code>
+                            <code class="text-brand-red font-bold text-xs block mt-1">Thuế VAT = Giá tính VAT × Thuế suất VAT</code>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Diagram -->
+            <div class="bg-white p-6 rounded-xl shadow-md border border-slate-200">
+                <h3 class="font-bold text-lg text-slate-800 mb-4 flex items-center gap-2">
+                    <i data-lucide="layers" class="w-5 h-5 text-brand-blue"></i> Quy Trình & Thứ Tự Tính Thuế Hải Quan Chuẩn
+                </h3>
+                <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-3 text-center">
+                    <div class="p-3 bg-sky-50 border border-sky-200 rounded-lg shadow-sm">
+                        <div class="text-xs font-bold text-sky-600 uppercase">Bước 1</div>
+                        <div class="font-bold text-sky-900 mt-1 text-sm">Xác Định Trị Giá (CIF)</div>
+                        <p class="text-xs text-slate-500 mt-1">FOB + Freight + Insurance + Adjustments</p>
+                    </div>
+                    <div class="p-3 bg-sky-100 border border-sky-300 rounded-lg shadow-sm">
+                        <div class="text-xs font-bold text-sky-700 uppercase">Bước 2</div>
+                        <div class="font-bold text-sky-900 mt-1 text-sm">Thuế Nhập Khẩu</div>
+                        <p class="text-xs text-slate-500 mt-1">= CIF × Thuế suất NK (MFN/FTA)</p>
+                    </div>
+                    <div class="p-3 bg-amber-50 border border-amber-200 rounded-lg shadow-sm">
+                        <div class="text-xs font-bold text-amber-600 uppercase">Bước 3</div>
+                        <div class="font-bold text-amber-900 mt-1 text-sm">Thuế TTĐB / PVTM</div>
+                        <p class="text-xs text-slate-500 mt-1">= (CIF + Thuế NK) × % TTĐB</p>
+                    </div>
+                    <div class="p-3 bg-red-50 border border-red-200 rounded-lg shadow-sm">
+                        <div class="text-xs font-bold text-brand-red uppercase">Bước 4</div>
+                        <div class="font-bold text-red-900 mt-1 text-sm">Thuế GTGT (VAT)</div>
+                        <p class="text-xs text-slate-500 mt-1">= (CIF + NK + TTĐB + PVTM) × % VAT</p>
+                    </div>
+                    <div class="p-3 bg-emerald-100 border border-emerald-300 rounded-lg shadow-sm">
+                        <div class="text-xs font-bold text-emerald-700 uppercase">Tổng Cộng</div>
+                        <div class="font-bold text-emerald-900 mt-1 text-sm">Tổng Thuế Phải Nộp</div>
+                        <p class="text-xs text-slate-500 mt-1">= NK + TTĐB + PVTM + VAT</p>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Adjustments Table -->
+            <div class="bg-white p-6 rounded-xl shadow-md border border-slate-200">
+                <h3 class="font-bold text-lg text-slate-800 mb-4 flex items-center gap-2">
+                    <i data-lucide="sliders" class="w-5 h-5 text-brand-blue"></i> Các Khoản Điều Chỉnh Trị Giá Hải Quan (Phương Pháp 1)
+                </h3>
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                    <div class="border border-emerald-200 bg-emerald-50/50 rounded-lg p-4">
+                        <h4 class="font-bold text-emerald-800 flex items-center gap-2 mb-2">
+                            <i data-lucide="plus-circle" class="w-5 h-5 text-emerald-600"></i> KHOẢN CỘNG (Additions)
+                        </h4>
+                        <p class="text-xs text-emerald-700 mb-3">Người mua trả nhưng chưa tính trong giá hóa đơn:</p>
+                        <ul class="text-xs space-y-2 text-slate-700">
+                            <li class="flex items-start gap-2"><i data-lucide="check" class="w-4 h-4 text-emerald-600 shrink-0 mt-0.5"></i> <span><b>Chi phí vận tải quốc tế (F):</b> Cước biển/hàng không đến cửa khẩu nhập.</span></li>
+                            <li class="flex items-start gap-2"><i data-lucide="check" class="w-4 h-4 text-emerald-600 shrink-0 mt-0.5"></i> <span><b>Phí bảo hiểm quốc tế (I):</b> Phí bảo hiểm lô hàng transit.</span></li>
+                            <li class="flex items-start gap-2"><i data-lucide="check" class="w-4 h-4 text-emerald-600 shrink-0 mt-0.5"></i> <span><b>Khoản trợ giúp (Assists):</b> Khuôn mẫu, thiết kế, vật tư do người mua cung cấp miễn phí.</span></li>
+                            <li class="flex items-start gap-2"><i data-lucide="check" class="w-4 h-4 text-emerald-600 shrink-0 mt-0.5"></i> <span><b>Phí bản quyền, giấy phép (Royalty):</b> Phải trả như điều kiện mua hàng.</span></li>
+                        </ul>
+                    </div>
+
+                    <div class="border border-brand-red/30 bg-brand-lightred/50 rounded-lg p-4">
+                        <h4 class="font-bold text-red-800 flex items-center gap-2 mb-2">
+                            <i data-lucide="minus-circle" class="w-5 h-5 text-brand-red"></i> KHOẢN TRỪ (Deductions)
+                        </h4>
+                        <p class="text-xs text-red-700 mb-3">Đã bao gồm trong giá hóa đơn nhưng loại trừ khỏi trị giá tính thuế:</p>
+                        <ul class="text-xs space-y-2 text-slate-700">
+                            <li class="flex items-start gap-2"><i data-lucide="x" class="w-4 h-4 text-brand-red shrink-0 mt-0.5"></i> <span><b>Vận chuyển/Bốc dỡ nội địa:</b> Chi phí sau khi hàng đã đến cửa khẩu nhập Việt Nam.</span></li>
+                            <li class="flex items-start gap-2"><i data-lucide="x" class="w-4 h-4 text-brand-red shrink-0 mt-0.5"></i> <span><b>Thuế & phí nội địa:</b> Thuế GTGT, thuế nội địa đã tính gộp trong giá bán.</span></li>
+                            <li class="flex items-start gap-2"><i data-lucide="x" class="w-4 h-4 text-brand-red shrink-0 mt-0.5"></i> <span><b>Chi phí lắp đặt, bảo dưỡng:</b> Phát sinh sau khi nhập khẩu.</span></li>
+                        </ul>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- TAB 2: TRỰC QUAN TÍNH THUẾ -->
+        <section id="tab-simulation" class="tab-content hidden space-y-6">
+            <div class="grid grid-cols-1 lg:grid-cols-12 gap-6">
+                <!-- Left Column -->
+                <div class="lg:col-span-5 bg-white p-5 rounded-xl shadow-md border border-slate-200 space-y-4">
+                    <div class="border-b pb-3 flex items-center justify-between">
+                        <h3 class="font-bold text-sky-900 flex items-center gap-2 text-base">
+                            <i data-lucide="sliders-horizontal" class="w-5 h-5 text-brand-blue"></i> Thông Số Khai Báo Lô Hàng
+                        </h3>
+                        <button onclick="resetSimulation()" class="text-xs text-sky-600 hover:underline flex items-center gap-1">
+                            <i data-lucide="rotate-ccw" class="w-3.5 h-3.5"></i> Đặt lại
+                        </button>
+                    </div>
+
+                    <div>
+                        <label class="block text-xs font-semibold text-slate-700 mb-1">Mẫu Tình Huống Giảng Dạy Nhanh:</label>
+                        <select id="sim-preset" onchange="loadPresetScenario()" class="w-full text-xs p-2 border border-slate-300 rounded-lg bg-amber-50 text-slate-800 font-medium focus:ring-2 focus:ring-sky-500">
+                            <option value="custom">-- Tự nhập thông số --</option>
+                            <option value="car">Ô tô dưới 9 chỗ (Có MFN / FTA / TTĐB / VAT)</option>
+                            <option value="wine">Rượu Vang Nhập Khẩu (Giá CIF + TTĐB + VAT)</option>
+                            <option value="steel">Thép Cán Nguội (Có Thuế Chống Bán Phá Giá)</option>
+                            <option value="clothes">Quần Áo Từ Thái Lan (Áp dụng C/O Form E / ATIGA 0%)</option>
+                        </select>
+                    </div>
+
+                    <div class="grid grid-cols-2 gap-3 text-xs">
+                        <div>
+                            <label class="font-semibold text-slate-700">Điều Kiện Giao Hàng</label>
+                            <select id="sim-incoterm" onchange="toggleIncotermInputs(); calculateTax();" class="w-full p-2 border rounded-lg mt-1">
+                                <option value="FOB">FOB / FCA</option>
+                                <option value="CIF" selected>CIF / CIP</option>
+                                <option value="EXW">EXW</option>
+                            </select>
+                        </div>
+                        <div>
+                            <label class="font-semibold text-slate-700">Tỷ Giá Tính Thuế (VND/USD)</label>
+                            <input type="number" id="sim-exchange" value="24000" oninput="calculateTax()" class="w-full p-2 border rounded-lg mt-1">
+                        </div>
+                    </div>
+
+                    <!-- Price Inputs -->
+                    <div class="space-y-3 bg-sky-50/60 p-3 rounded-lg border border-sky-100 text-xs">
+                        <div class="grid grid-cols-2 gap-3">
+                            <div>
+                                <label class="font-semibold text-slate-700">Đơn Giá Hóa Đơn ($)</label>
+                                <input type="number" id="sim-unitprice" value="100" oninput="calculateTax()" class="w-full p-2 border rounded-lg mt-1">
+                            </div>
+                            <div>
+                                <label class="font-semibold text-slate-700">Số Lượng</label>
+                                <input type="number" id="sim-qty" value="1000" oninput="calculateTax()" class="w-full p-2 border rounded-lg mt-1">
+                            </div>
+                        </div>
+
+                        <div id="incoterm-extra-fields" class="space-y-2">
+                            <div class="grid grid-cols-2 gap-3">
+                                <div>
+                                    <label class="font-semibold text-slate-700">Cước Vận Tải Quốc Tế F ($)</label>
+                                    <input type="number" id="sim-freight" value="2000" oninput="calculateTax()" class="w-full p-2 border rounded-lg mt-1">
+                                </div>
+                                <div>
+                                    <label class="font-semibold text-slate-700">Phí Bảo Hiểm I ($)</label>
+                                    <input type="number" id="sim-insurance" value="500" oninput="calculateTax()" class="w-full p-2 border rounded-lg mt-1">
+                                </div>
+                            </div>
+                            <div id="exw-field" class="hidden">
+                                <label class="font-semibold text-slate-700">Vận Chuyển Nội Địa Xuất Khẩu ($)</label>
+                                <input type="number" id="sim-exw-inland" value="500" oninput="calculateTax()" class="w-full p-2 border rounded-lg mt-1">
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Adjustments -->
+                    <div class="space-y-2 bg-amber-50/60 p-3 rounded-lg border border-amber-200 text-xs">
+                        <span class="font-bold text-amber-900 block border-b border-amber-200 pb-1">Khoản Điều Chỉnh Trị Giá ($)</span>
+                        <div class="grid grid-cols-2 gap-3">
+                            <div>
+                                <label class="text-emerald-800 font-semibold">+ Khoản Trợ Giúp / Bản Quyền ($)</label>
+                                <input type="number" id="sim-additions" value="0" oninput="calculateTax()" class="w-full p-2 border rounded-lg mt-1">
+                            </div>
+                            <div>
+                                <label class="text-red-800 font-semibold">- Vận Chuyển Nội Địa VN ($)</label>
+                                <input type="number" id="sim-deductions" value="0" oninput="calculateTax()" class="w-full p-2 border rounded-lg mt-1">
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Tax Rates -->
+                    <div class="space-y-2 bg-slate-100 p-3 rounded-lg text-xs">
+                        <span class="font-bold text-slate-800 block border-b pb-1">Thuế Suất Áp Dụng (%)</span>
+                        <div class="grid grid-cols-2 gap-3">
+                            <div>
+                                <label class="font-semibold text-slate-700">Thuế Nhập Khẩu (%)</label>
+                                <input type="number" id="sim-tax-nk" value="10" oninput="calculateTax()" class="w-full p-2 border rounded-lg mt-1">
+                            </div>
+                            <div>
+                                <label class="font-semibold text-slate-700">Thuế TTĐB (%)</label>
+                                <input type="number" id="sim-tax-ttdb" value="0" oninput="calculateTax()" class="w-full p-2 border rounded-lg mt-1">
+                            </div>
+                            <div>
+                                <label class="font-semibold text-slate-700">Thuế Phòng Vệ TM (%)</label>
+                                <input type="number" id="sim-tax-pvtm" value="0" oninput="calculateTax()" class="w-full p-2 border rounded-lg mt-1">
+                            </div>
+                            <div>
+                                <label class="font-semibold text-slate-700">Thuế GTGT VAT (%)</label>
+                                <input type="number" id="sim-tax-vat" value="10" oninput="calculateTax()" class="w-full p-2 border rounded-lg mt-1">
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Right Column -->
+                <div class="lg:col-span-7 space-y-6">
+                    <div class="bg-white p-5 rounded-xl shadow-md border border-slate-200">
+                        <h3 class="font-bold text-slate-800 mb-4 flex items-center gap-2">
+                            <i data-lucide="bar-chart-3" class="w-5 h-5 text-brand-blue"></i> Kết Quả Bóc Tách Trị Giá & Thuế Nộp
+                        </h3>
+
+                        <div class="grid grid-cols-2 sm:grid-cols-4 gap-3 mb-5">
+                            <div class="p-3 bg-sky-50 rounded-lg border border-sky-200">
+                                <span class="text-xs text-sky-700 font-semibold block">Trị Giá CIF ($)</span>
+                                <span id="res-cif-usd" class="text-base font-extrabold text-sky-900">$0</span>
+                            </div>
+                            <div class="p-3 bg-sky-100 rounded-lg border border-sky-300">
+                                <span class="text-xs text-sky-800 font-semibold block">Trị Giá Hải Quan (VND)</span>
+                                <span id="res-cif-vnd" class="text-base font-extrabold text-sky-950">0 VNĐ</span>
+                            </div>
+                            <div class="p-3 bg-amber-50 rounded-lg border border-amber-200">
+                                <span class="text-xs text-amber-800 font-semibold block">Tổng Thuế Phải Nộp</span>
+                                <span id="res-total-tax" class="text-base font-extrabold text-amber-900">0 VNĐ</span>
+                            </div>
+                            <div class="p-3 bg-emerald-50 rounded-lg border border-emerald-200">
+                                <span class="text-xs text-emerald-800 font-semibold block">Tổng Lô Hàng Sau Thuế</span>
+                                <span id="res-total-landed" class="text-base font-extrabold text-emerald-900">0 VNĐ</span>
+                            </div>
+                        </div>
+
+                        <div class="overflow-x-auto">
+                            <table class="w-full text-xs text-left border-collapse">
+                                <thead>
+                                    <tr class="bg-slate-100 text-slate-700 border-b">
+                                        <th class="p-2.5">Sắc Thuế / Khoản Mục</th>
+                                        <th class="p-2.5">Căn Cứ Tính (Cơ Sở Thuế)</th>
+                                        <th class="p-2.5 text-center">Thuế Suất</th>
+                                        <th class="p-2.5 text-right">Số Thuế Phải Nộp (VND)</th>
+                                    </tr>
+                                </thead>
+                                <tbody class="divide-y divide-slate-200 text-slate-700">
+                                    <tr>
+                                        <td class="p-2.5 font-semibold text-sky-800">1. Thuế Nhập Khẩu</td>
+                                        <td id="step-nk-base" class="p-2.5">Trị giá Hải quan (CIF)</td>
+                                        <td id="step-nk-rate" class="p-2.5 text-center font-bold">0%</td>
+                                        <td id="step-nk-val" class="p-2.5 text-right font-bold text-sky-700">0 VNĐ</td>
+                                    </tr>
+                                    <tr id="row-ttdb">
+                                        <td class="p-2.5 font-semibold text-amber-800">2. Thuế Tiêu Thụ Đặc Biệt</td>
+                                        <td id="step-ttdb-base" class="p-2.5">CIF + Thuế NK</td>
+                                        <td id="step-ttdb-rate" class="p-2.5 text-center font-bold">0%</td>
+                                        <td id="step-ttdb-val" class="p-2.5 text-right font-bold text-amber-700">0 VNĐ</td>
+                                    </tr>
+                                    <tr id="row-pvtm">
+                                        <td class="p-2.5 font-semibold text-purple-800">3. Thuế Phòng Vệ TM</td>
+                                        <td id="step-pvtm-base" class="p-2.5">Trị giá CIF</td>
+                                        <td id="step-pvtm-rate" class="p-2.5 text-center font-bold">0%</td>
+                                        <td id="step-pvtm-val" class="p-2.5 text-right font-bold text-purple-700">0 VNĐ</td>
+                                    </tr>
+                                    <tr>
+                                        <td class="p-2.5 font-semibold text-red-800">4. Thuế Giá Trị Gia Tăng (VAT)</td>
+                                        <td id="step-vat-base" class="p-2.5">CIF + NK + TTĐB + PVTM</td>
+                                        <td id="step-vat-rate" class="p-2.5 text-center font-bold">0%</td>
+                                        <td id="step-vat-val" class="p-2.5 text-right font-bold text-brand-red">0 VNĐ</td>
+                                    </tr>
+                                    <tr class="bg-slate-50 font-bold border-t-2 border-slate-300">
+                                        <td class="p-2.5 text-slate-900" colspan="3">TỔNG NGHĨA VỤ THUẾ VỚI NHÀ NƯỚC</td>
+                                        <td id="step-total-tax" class="p-2.5 text-right text-brand-red text-sm">0 VNĐ</td>
+                                    </tr>
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+
+                    <div class="bg-white p-5 rounded-xl shadow-md border border-slate-200">
+                        <h4 class="text-sm font-bold text-slate-700 mb-2">Biểu Đồ Cơ Cấu Chi Phí Lô Hàng Lên Cảng</h4>
+                        <div class="h-64 w-full">
+                            <canvas id="taxChart"></canvas>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- TAB 3: 6 PHƯƠNG PHÁP TRỊ GIÁ HẢI QUAN -->
+        <section id="tab-methods" class="tab-content hidden space-y-6">
+            <div class="bg-brand-lightblue p-5 rounded-xl border border-sky-200">
+                <h2 class="text-xl font-bold text-sky-900 flex items-center gap-2">
+                    <i data-lucide="git-merge" class="w-6 h-6 text-brand-blue"></i>
+                    6 Phương Pháp Xác Định Trị Giá Hải Quan Theo Chuẩn WTO
+                </h2>
+                <p class="text-xs text-sky-800 mt-1">
+                    <b>Nguyên tắc áp dụng:</b> Phải tuân thủ nghiêm ngặt theo thứ tự từ Phương pháp 1 đến Phương pháp 6. Chỉ chuyển sang phương pháp tiếp theo khi phương pháp trước đó không đủ điều kiện xác định.
+                </p>
+            </div>
+
+            <div class="grid grid-cols-1 lg:grid-cols-12 gap-6">
+                <div class="lg:col-span-4 space-y-2">
+                    <button onclick="showMethod(1)" id="method-btn-1" class="method-step active w-full text-left p-3.5 rounded-xl border border-slate-200 bg-white hover:border-sky-400 transition-all flex items-center justify-between shadow-sm">
+                        <div>
+                            <span class="text-xs font-bold text-sky-600 block">PHƯƠNG PHÁP 1</span>
+                            <span class="font-bold text-slate-800 text-sm">Trị Giá Giao Dịch</span>
+                        </div>
+                        <i data-lucide="chevron-right" class="w-5 h-5 text-slate-400"></i>
+                    </button>
+                    <button onclick="showMethod(2)" id="method-btn-2" class="method-step w-full text-left p-3.5 rounded-xl border border-slate-200 bg-white hover:border-sky-400 transition-all flex items-center justify-between shadow-sm">
+                        <div>
+                            <span class="text-xs font-bold text-sky-600 block">PHƯƠNG PHÁP 2</span>
+                            <span class="font-bold text-slate-800 text-sm">Hàng Hóa Giống Hệt</span>
+                        </div>
+                        <i data-lucide="chevron-right" class="w-5 h-5 text-slate-400"></i>
+                    </button>
+                    <button onclick="showMethod(3)" id="method-btn-3" class="method-step w-full text-left p-3.5 rounded-xl border border-slate-200 bg-white hover:border-sky-400 transition-all flex items-center justify-between shadow-sm">
+                        <div>
+                            <span class="text-xs font-bold text-sky-600 block">PHƯƠNG PHÁP 3</span>
+                            <span class="font-bold text-slate-800 text-sm">Hàng Hóa Tương Tự</span>
+                        </div>
+                        <i data-lucide="chevron-right" class="w-5 h-5 text-slate-400"></i>
+                    </button>
+                    <button onclick="showMethod(4)" id="method-btn-4" class="method-step w-full text-left p-3.5 rounded-xl border border-slate-200 bg-white hover:border-sky-400 transition-all flex items-center justify-between shadow-sm">
+                        <div>
+                            <span class="text-xs font-bold text-sky-600 block">PHƯƠNG PHÁP 4</span>
+                            <span class="font-bold text-slate-800 text-sm">Phương Pháp Khấu Trừ</span>
+                        </div>
+                        <i data-lucide="chevron-right" class="w-5 h-5 text-slate-400"></i>
+                    </button>
+                    <button onclick="showMethod(5)" id="method-btn-5" class="method-step w-full text-left p-3.5 rounded-xl border border-slate-200 bg-white hover:border-sky-400 transition-all flex items-center justify-between shadow-sm">
+                        <div>
+                            <span class="text-xs font-bold text-sky-600 block">PHƯƠNG PHÁP 5</span>
+                            <span class="font-bold text-slate-800 text-sm">Phương Pháp Tính Toán</span>
+                        </div>
+                        <i data-lucide="chevron-right" class="w-5 h-5 text-slate-400"></i>
+                    </button>
+                    <button onclick="showMethod(6)" id="method-btn-6" class="method-step w-full text-left p-3.5 rounded-xl border border-slate-200 bg-white hover:border-sky-400 transition-all flex items-center justify-between shadow-sm">
+                        <div>
+                            <span class="text-xs font-bold text-sky-600 block">PHƯƠNG PHÁP 6</span>
+                            <span class="font-bold text-slate-800 text-sm">Phương Pháp Suy Luận</span>
+                        </div>
+                        <i data-lucide="chevron-right" class="w-5 h-5 text-slate-400"></i>
+                    </button>
+                </div>
+
+                <div class="lg:col-span-8 bg-white p-6 rounded-xl shadow-md border border-slate-200 min-h-[420px] flex flex-col justify-between" id="method-detail-panel">
+                </div>
+            </div>
+        </section>
+
+        <!-- TAB 4: BÀI TẬP VÀ LỜI GIẢI CHI TIẾT -->
+        <section id="tab-exercises" class="tab-content hidden space-y-6">
+            <div class="bg-white p-4 rounded-xl shadow-md border border-slate-200 flex flex-col md:flex-row items-center justify-between gap-4">
+                <div class="flex items-center gap-2 w-full md:w-auto">
+                    <i data-lucide="filter" class="w-5 h-5 text-sky-600"></i>
+                    <span class="font-bold text-slate-700 text-sm">Lọc Bài Tập:</span>
+                    <select id="exercise-category" onchange="filterExercises()" class="text-xs p-2 border border-slate-300 rounded-lg bg-slate-50 focus:ring-2 focus:ring-sky-500">
+                        <option value="all">Tất cả 29 Bài Tập Chương 4</option>
+                        <option value="part1">Câu Hỏi Luyện Tập Cơ Bản (Bài 1 - 4)</option>
+                        <option value="part2">Xác Định Trị Giá & Điều Chỉnh (Bài 5 - 14)</option>
+                        <option value="part3">Thực Hành 6 Phương Pháp Trị Giá (Bài 15 - 24)</option>
+                        <option value="part4">Bài Tập Tính Thuế Tổng Hợp (Bài 25 - 29)</option>
+                    </select>
+                </div>
+                <div class="relative w-full md:w-72">
+                    <input type="text" id="exercise-search" oninput="filterExercises()" placeholder="Tìm theo từ khóa (FOB, CIF, VAT...)" class="w-full text-xs p-2 pl-8 border rounded-lg">
+                    <i data-lucide="search" class="w-4 h-4 text-slate-400 absolute left-2.5 top-2.5"></i>
+                </div>
+            </div>
+
+            <div id="exercise-list-container" class="space-y-4"></div>
+        </section>
+
+        <!-- TAB BỔ SUNG: TAB KIỂM TRA (30 BÀI TẬP LÀM TRỰC TIẾP & XUẤT PDF) -->
+        <section id="tab-exam" class="tab-content hidden space-y-6">
+            <div class="bg-emerald-50 border-l-4 border-emerald-600 p-5 rounded-r-xl shadow-sm flex flex-col md:flex-row md:items-center justify-between gap-4">
+                <div class="flex items-start gap-3">
+                    <i data-lucide="file-check" class="w-8 h-8 text-emerald-600 shrink-0 mt-1"></i>
+                    <div>
+                        <h2 class="text-lg font-bold text-emerald-950">Hệ Thống 30 Bài Tập Luyện Tập & Kiểm Tra Chương</h2>
+                        <p class="text-xs text-emerald-800 mt-1">Sinh viên điền thông tin cá nhân, thực hiện bài làm trực tiếp vào các ô bên dưới. Khi hoàn thành bấm <b>Kết xuất PDF</b> để nộp cho Giảng viên.</p>
+                    </div>
+                </div>
+                <!-- Control xuất PDF -->
+                <div class="flex items-center gap-2 bg-white p-2 rounded-lg border border-emerald-200 shadow-sm shrink-0">
+                    <label class="text-xs font-bold text-slate-700">Khổ Trang PDF:</label>
+                    <select id="pdf-orientation" class="text-xs p-1.5 border rounded font-semibold text-slate-700">
+                        <option value="p">A4 Dọc (Portrait)</option>
+                        <option value="l">A4 Ngang (Landscape)</option>
+                    </select>
+                    <button onclick="exportStudentPDF()" class="bg-emerald-600 hover:bg-emerald-700 text-white font-bold text-xs px-3 py-1.5 rounded flex items-center gap-1 shadow transition-all">
+                        <i data-lucide="download" class="w-4 h-4"></i> Kết Xuất PDF
+                    </button>
+                </div>
+            </div>
+
+            <!-- Form Thông tin sinh viên -->
+            <div class="bg-white p-5 rounded-xl border border-slate-200 shadow-md space-y-4">
+                <h3 class="font-bold text-slate-800 text-sm border-b pb-2 flex items-center gap-2">
+                    <i data-lucide="user-check" class="w-4 h-4 text-emerald-600"></i> Thông Tin Sinh Viên Thực Hiện Bài Làm
+                </h3>
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <div>
+                        <label class="block text-xs font-semibold text-slate-700 mb-1">Họ Và Tên Sinh Viên <span class="text-red-500">*</span></label>
+                        <input type="text" id="student-name" placeholder="Nhập đầy đủ Họ và Tên..." class="w-full text-xs p-2.5 border rounded-lg focus:ring-2 focus:ring-emerald-500 outline-none">
+                    </div>
+                    <div>
+                        <label class="block text-xs font-semibold text-slate-700 mb-1">Mã Số Sinh Viên (MSSV) <span class="text-red-500">*</span></label>
+                        <input type="text" id="student-id" placeholder="Nhập Mã số sinh viên..." class="w-full text-xs p-2.5 border rounded-lg focus:ring-2 focus:ring-emerald-500 outline-none">
+                    </div>
+                </div>
+            </div>
+
+            <!-- Danh sách 30 bài tập làm bài -->
+            <div id="exam-questions-list" class="space-y-4">
+                <!-- Javascript render 30 câu hỏi dạng ô input -->
+            </div>
+        </section>
+
+    </main>
+
+    <!-- FOOTER -->
+    <footer class="bg-slate-800 text-slate-300 border-t border-slate-700 mt-12 py-6 text-xs">
+        <div class="max-w-7xl mx-auto px-4 flex flex-col md:flex-row items-center justify-between gap-4 text-center md:text-left">
+            <div>
+                <p class="font-bold text-white text-sm">Phần Mềm Trực Quan Giảng Dạy Khai Báo Hải Quan & Thuế</p>
+                <p class="text-slate-400 mt-0.5">Xây dựng dựa trên Giáo trình Lý thuyết Chương 4 – Thuế & Trị giá Hải quan</p>
+            </div>
+            <div class="flex items-center gap-4">
+                <span class="bg-sky-900 text-sky-200 px-3 py-1 rounded-full text-xs border border-sky-700">Phiên bản Giảng Dạy v3.0</span>
+                <span class="text-slate-400">Chuẩn WTO & Luật Hải Quan VN</span>
+            </div>
+        </div>
+    </footer>
+
+    <!-- MODAL NHẬP PASS GIẢNG VIÊN (GV) -->
+    <div id="gv-modal" class="fixed inset-0 bg-slate-900/60 backdrop-blur-sm z-50 hidden flex items-center justify-center p-4">
+        <div class="bg-white rounded-2xl shadow-2xl border border-slate-200 max-w-md w-full p-6 space-y-4 relative">
+            <button onclick="closeGVModal()" class="absolute top-4 right-4 text-slate-400 hover:text-slate-600">
+                <i data-lucide="x" class="w-5 h-5"></i>
+            </button>
+            <div class="flex items-center gap-3">
+                <div class="p-2.5 bg-amber-100 rounded-xl text-amber-700">
+                    <i data-lucide="shield-check" class="w-6 h-6"></i>
+                </div>
+                <div>
+                    <h3 class="font-bold text-slate-900 text-base">Xác Nhận Quyền Giảng Viên</h3>
+                    <p class="text-xs text-slate-500">Vui lòng nhập mật khẩu để xem đáp án 30 bài kiểm tra</p>
+                </div>
+            </div>
+            <div>
+                <label class="block text-xs font-semibold text-slate-700 mb-1">Mật khẩu GV:</label>
+                <input type="password" id="gv-pass-input" placeholder="Nhập mật khẩu..." class="w-full text-xs p-2.5 border rounded-lg focus:ring-2 focus:ring-amber-500 outline-none" onkeyup="if(event.key==='Enter') verifyGVPass()">
+                <p id="gv-error-msg" class="text-xs text-red-600 font-semibold mt-1.5 hidden">Mật khẩu không chính xác! Vui lòng thử lại.</p>
+            </div>
+            <div class="flex justify-end gap-2 pt-2">
+                <button onclick="closeGVModal()" class="px-4 py-2 text-xs font-semibold text-slate-600 hover:bg-slate-100 rounded-lg">Hủy</button>
+                <button onclick="verifyGVPass()" class="px-4 py-2 text-xs font-bold bg-amber-500 hover:bg-amber-600 text-white rounded-lg shadow">Xác Nhận</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- MODAL XEM ĐÁP ÁN DÀNH CHO GIẢNG VIÊN -->
+    <div id="gv-answers-modal" class="fixed inset-0 bg-slate-900/70 backdrop-blur-md z-50 hidden flex items-center justify-center p-4">
+        <div class="bg-white rounded-2xl shadow-2xl border border-slate-200 max-w-5xl w-full h-[90vh] flex flex-col overflow-hidden">
+            <div class="p-4 bg-slate-800 text-white flex items-center justify-between border-b border-slate-700">
+                <div class="flex items-center gap-2">
+                    <i data-lucide="key-round" class="w-5 h-5 text-amber-400"></i>
+                    <h3 class="font-bold text-base">ĐÁP ÁN & HƯỚNG DẪN GIẢI CHI TIẾT - 30 BÀI TẬP KIỂM TRA (DÀNH CHO GV)</h3>
+                </div>
+                <button onclick="closeGVAnswersModal()" class="text-slate-400 hover:text-white">
+                    <i data-lucide="x" class="w-6 h-6"></i>
+                </button>
+            </div>
+            <div class="p-6 overflow-y-auto flex-1 space-y-4 text-xs" id="gv-answers-content">
+                <!-- Javascript Render Đầy Đủ Đáp Án 30 Bài -->
+            </div>
+            <div class="p-4 bg-slate-100 border-t flex justify-end">
+                <button onclick="closeGVAnswersModal()" class="px-5 py-2 bg-slate-700 hover:bg-slate-800 text-white font-bold text-xs rounded-lg">Đóng</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- KHU VỰC ẨN DÙNG ĐỂ TẠO CẤU TRÚC PDF KHI XUẤT -->
+    <div class="hidden">
+        <div id="pdf-export-template" class="pdf-page">
+            <!-- Dynamic Content Output -->
+        </div>
+    </div>
+
+    <!-- JAVASCRIPT LOGIC -->
+    <script>
+        // Initialize Lucide Icons
+        lucide.createIcons();
+
+        // TAB SWITCHING LOGIC
+        function switchTab(tabId) {
+            document.querySelectorAll('.tab-content').forEach(el => el.classList.add('hidden'));
+            document.querySelectorAll('.tab-btn').forEach(el => el.classList.remove('active-tab'));
+            
+            document.getElementById(`tab-${tabId}`).classList.remove('hidden');
+            document.getElementById(`btn-${tabId}`).classList.add('active-tab');
+
+            if (tabId === 'simulation' && !window.taxChartInstance) {
+                initTaxChart();
+                calculateTax();
+            }
+        }
+
+        // SIMULATION LOGIC
+        let taxChartInstance = null;
+
+        function toggleIncotermInputs() {
+            const incoterm = document.getElementById('sim-incoterm').value;
+            const extraFields = document.getElementById('incoterm-extra-fields');
+            const exwField = document.getElementById('exw-field');
+
+            if (incoterm === 'CIF') {
+                extraFields.classList.add('hidden');
+            } else {
+                extraFields.classList.remove('hidden');
+                if (incoterm === 'EXW') {
+                    exwField.classList.remove('hidden');
+                } else {
+                    exwField.classList.add('hidden');
+                }
+            }
+        }
+
+        function calculateTax() {
+            const incoterm = document.getElementById('sim-incoterm').value;
+            const unitPrice = parseFloat(document.getElementById('sim-unitprice').value) || 0;
+            const qty = parseFloat(document.getElementById('sim-qty').value) || 0;
+            const exchangeRate = parseFloat(document.getElementById('sim-exchange').value) || 24000;
+
+            let freight = parseFloat(document.getElementById('sim-freight').value) || 0;
+            let insurance = parseFloat(document.getElementById('sim-insurance').value) || 0;
+            let exwInland = parseFloat(document.getElementById('sim-exw-inland').value) || 0;
+
+            let additions = parseFloat(document.getElementById('sim-additions').value) || 0;
+            let deductions = parseFloat(document.getElementById('sim-deductions').value) || 0;
+
+            let taxRateNK = parseFloat(document.getElementById('sim-tax-nk').value) || 0;
+            let taxRateTTDB = parseFloat(document.getElementById('sim-tax-ttdb').value) || 0;
+            let taxRatePVTM = parseFloat(document.getElementById('sim-tax-pvtm').value) || 0;
+            let taxRateVAT = parseFloat(document.getElementById('sim-tax-vat').value) || 0;
+
+            let baseUSD = unitPrice * qty;
+            let cifUSD = 0;
+
+            if (incoterm === 'CIF') {
+                cifUSD = baseUSD + additions - deductions;
+            } else if (incoterm === 'FOB') {
+                cifUSD = baseUSD + freight + insurance + additions - deductions;
+            } else if (incoterm === 'EXW') {
+                cifUSD = baseUSD + exwInland + freight + insurance + additions - deductions;
+            }
+
+            if (cifUSD < 0) cifUSD = 0;
+
+            const cifVND = cifUSD * exchangeRate;
+
+            const taxNK = cifVND * (taxRateNK / 100);
+            const baseTTDB = cifVND + taxNK;
+            const taxTTDB = baseTTDB * (taxRateTTDB / 100);
+            const taxPVTM = cifVND * (taxRatePVTM / 100);
+            const baseVAT = cifVND + taxNK + taxTTDB + taxPVTM;
+            const taxVAT = baseVAT * (taxRateVAT / 100);
+
+            const totalTax = taxNK + taxTTDB + taxPVTM + taxVAT;
+            const totalLandedCost = cifVND + totalTax;
+
+            document.getElementById('res-cif-usd').innerText = '$' + cifUSD.toLocaleString('en-US', {maximumFractionDigits: 2});
+            document.getElementById('res-cif-vnd').innerText = cifVND.toLocaleString('vi-VN') + ' VNĐ';
+            document.getElementById('res-total-tax').innerText = totalTax.toLocaleString('vi-VN') + ' VNĐ';
+            document.getElementById('res-total-landed').innerText = totalLandedCost.toLocaleString('vi-VN') + ' VNĐ';
+
+            document.getElementById('step-nk-base').innerText = cifVND.toLocaleString('vi-VN') + ' VNĐ';
+            document.getElementById('step-nk-rate').innerText = taxRateNK + '%';
+            document.getElementById('step-nk-val').innerText = taxNK.toLocaleString('vi-VN') + ' VNĐ';
+
+            document.getElementById('step-ttdb-base').innerText = baseTTDB.toLocaleString('vi-VN') + ' VNĐ';
+            document.getElementById('step-ttdb-rate').innerText = taxRateTTDB + '%';
+            document.getElementById('step-ttdb-val').innerText = taxTTDB.toLocaleString('vi-VN') + ' VNĐ';
+
+            document.getElementById('step-pvtm-base').innerText = cifVND.toLocaleString('vi-VN') + ' VNĐ';
+            document.getElementById('step-pvtm-rate').innerText = taxRatePVTM + '%';
+            document.getElementById('step-pvtm-val').innerText = taxPVTM.toLocaleString('vi-VN') + ' VNĐ';
+
+            document.getElementById('step-vat-base').innerText = baseVAT.toLocaleString('vi-VN') + ' VNĐ';
+            document.getElementById('step-vat-rate').innerText = taxRateVAT + '%';
+            document.getElementById('step-vat-val').innerText = taxVAT.toLocaleString('vi-VN') + ' VNĐ';
+
+            document.getElementById('step-total-tax').innerText = totalTax.toLocaleString('vi-VN') + ' VNĐ';
+
+            updateChart(cifVND, taxNK, taxTTDB, taxPVTM, taxVAT);
+        }
+
+        function loadPresetScenario() {
+            const preset = document.getElementById('sim-preset').value;
+            if (preset === 'custom') return;
+
+            if (preset === 'car') {
+                document.getElementById('sim-incoterm').value = 'FOB';
+                document.getElementById('sim-unitprice').value = '25000';
+                document.getElementById('sim-qty').value = '10';
+                document.getElementById('sim-freight').value = '15000';
+                document.getElementById('sim-insurance').value = '5000';
+                document.getElementById('sim-additions').value = '0';
+                document.getElementById('sim-deductions').value = '0';
+                document.getElementById('sim-tax-nk').value = '50';
+                document.getElementById('sim-tax-ttdb').value = '45';
+                document.getElementById('sim-tax-pvtm').value = '0';
+                document.getElementById('sim-tax-vat').value = '10';
+            } else if (preset === 'wine') {
+                document.getElementById('sim-incoterm').value = 'CIF';
+                document.getElementById('sim-unitprice').value = '50000';
+                document.getElementById('sim-qty').value = '1';
+                document.getElementById('sim-additions').value = '0';
+                document.getElementById('sim-deductions').value = '0';
+                document.getElementById('sim-tax-nk').value = '20';
+                document.getElementById('sim-tax-ttdb').value = '65';
+                document.getElementById('sim-tax-pvtm').value = '0';
+                document.getElementById('sim-tax-vat').value = '10';
+            } else if (preset === 'steel') {
+                document.getElementById('sim-incoterm').value = 'CIF';
+                document.getElementById('sim-unitprice').value = '200000';
+                document.getElementById('sim-qty').value = '1';
+                document.getElementById('sim-additions').value = '0';
+                document.getElementById('sim-deductions').value = '0';
+                document.getElementById('sim-tax-nk').value = '5';
+                document.getElementById('sim-tax-ttdb').value = '0';
+                document.getElementById('sim-tax-pvtm').value = '15';
+                document.getElementById('sim-tax-vat').value = '10';
+            } else if (preset === 'clothes') {
+                document.getElementById('sim-incoterm').value = 'CIF';
+                document.getElementById('sim-unitprice').value = '100000';
+                document.getElementById('sim-qty').value = '1';
+                document.getElementById('sim-additions').value = '0';
+                document.getElementById('sim-deductions').value = '0';
+                document.getElementById('sim-tax-nk').value = '0';
+                document.getElementById('sim-tax-ttdb').value = '0';
+                document.getElementById('sim-tax-pvtm').value = '0';
+                document.getElementById('sim-tax-vat').value = '10';
+            }
+
+            toggleIncotermInputs();
+            calculateTax();
+        }
+
+        function resetSimulation() {
+            document.getElementById('sim-preset').value = 'custom';
+            document.getElementById('sim-incoterm').value = 'CIF';
+            document.getElementById('sim-unitprice').value = '100';
+            document.getElementById('sim-qty').value = '1000';
+            document.getElementById('sim-freight').value = '2000';
+            document.getElementById('sim-insurance').value = '500';
+            document.getElementById('sim-additions').value = '0';
+            document.getElementById('sim-deductions').value = '0';
+            document.getElementById('sim-tax-nk').value = '10';
+            document.getElementById('sim-tax-ttdb').value = '0';
+            document.getElementById('sim-tax-pvtm').value = '0';
+            document.getElementById('sim-tax-vat').value = '10';
+            toggleIncotermInputs();
+            calculateTax();
+        }
+
+        function initTaxChart() {
+            const ctx = document.getElementById('taxChart').getContext('2d');
+            taxChartInstance = new Chart(ctx, {
+                type: 'bar',
+                data: {
+                    labels: ['Trị Giá CIF', 'Thuế NK', 'Thuế TTĐB', 'Thuế PVTM', 'Thuế VAT'],
+                    datasets: [{
+                        label: 'Giá trị (VND)',
+                        data: [0, 0, 0, 0, 0],
+                        backgroundColor: ['#0284c7', '#38bdf8', '#ca8a04', '#a855f7', '#ef4444'],
+                        borderRadius: 6
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: { legend: { display: false } },
+                    scales: {
+                        y: {
+                            beginAtZero: true,
+                            ticks: { callback: function(val) { return (val / 1e6).toLocaleString() + ' M'; } }
+                        }
+                    }
+                }
+            });
+        }
+
+        function updateChart(cif, nk, ttdb, pvtm, vat) {
+            if (!taxChartInstance) return;
+            taxChartInstance.data.datasets[0].data = [cif, nk, ttdb, pvtm, vat];
+            taxChartInstance.update();
+        }
+
+        // 6 METHODS DATA
+        const methodsData = {
+            1: {
+                title: "Phương Pháp 1: Trị Giá Giao Dịch Hàng Nhập Khẩu",
+                desc: "Trị giá hải quan là giá thực tế đã thanh toán hay sẽ phải thanh toán cho hàng hóa bán để xuất khẩu đến Việt Nam, sau khi đã được điều chỉnh cộng hoặc trừ.",
+                conditions: [
+                    "Người mua không bị hạn chế quyền định đoạt hoặc sử dụng hàng hóa.",
+                    "Giá cả không phụ thuộc vào các điều kiện hoặc các khoản thanh toán mà không xác định được trị giá.",
+                    "Không có khoản tiền bồi hoàn nào từ việc bán lại hàng hóa chảy về người bán.",
+                    "Người mua và người bán không có mối quan hệ đặc biệt làm ảnh hưởng giá."
+                ],
+                formula: "Trị Giá Hải Quan = Giá Hóa Đơn + Khoản Cộng (F, I, Assists, Royalty...) - Khoản Trừ (Nội Địa...)",
+                example: "Nhập 1.000 máy xay sinh tố FOB 20 USD/chiếc, F = 2.000 USD, I = 500 USD. -> Trị giá Hải quan (CIF) = (20 x 1.000) + 2.000 + 500 = 22.500 USD."
+            },
+            2: {
+                title: "Phương Pháp 2: Trị Giá Giao Dịch Của Hàng Hóa Giống Hệt",
+                desc: "Áp dụng khi không xác định được trị giá theo Phương pháp 1. Dựa trên trị giá giao dịch của hàng hóa giống hệt đã được Hải quan chấp nhận.",
+                conditions: [
+                    "Giống hệt về đặc tính vật lý, chất lượng, nhãn hiệu và danh tiếng.",
+                    "Được sản xuất tại cùng một quốc gia và bởi cùng một nhà sản xuất.",
+                    "Xuất khẩu đến Việt Nam cùng ngày hoặc trong vòng 60 ngày."
+                ],
+                formula: "Trị Giá Hải Quan = Trị giá CIF đã được duyệt của Lô Hàng Giống Hệt",
+                example: "Nhập 500 laptop Model X giá khai báo quá thấp. Bác bỏ P1. Áp dụng lô laptop Model X giống hệt do bên khác nhập 2 tuần trước giá CIF 600 USD/cái."
+            },
+            3: {
+                title: "Phương Pháp 3: Trị Giá Giao Dịch Của Hàng Hóa Tương Tự",
+                desc: "Dựa trên trị giá giao dịch của hàng hóa tương tự đã được chấp nhận trị giá hải quan.",
+                conditions: [
+                    "Đặc trưng tương tự, thành phần tương tự, thực hiện cùng chức năng.",
+                    "Cùng nước sản xuất, xuất khẩu gần thời điểm."
+                ],
+                formula: "Trị Giá Hải Quan = Trị giá CIF đã được duyệt của Lô Hàng Tương Tự",
+                example: "Nhập điều hòa Model Z. Dữ liệu Model Y (cùng hãng, cùng công suất, chỉ khác mặt nạ) CIF = 450 USD/cái -> Trị giá = 450 USD/cái."
+            },
+            4: {
+                title: "Phương Pháp 4: Phương Pháp Khấu Trừ (Deductive Value)",
+                desc: "Dựa trên đơn giá bán lại hàng hóa nhập khẩu trên thị trường nội địa Việt Nam trừ đi các chi phí hợp lý phát sinh sau nhập khẩu.",
+                conditions: [
+                    "Hàng hóa được bán lại nguyên vẹn như khi nhập khẩu.",
+                    "Đơn giá bán lại của số lượng bán ra lớn nhất."
+                ],
+                formula: "Trị Giá Hải Quan = Giá Bán Nội Địa - Thuế NK & VAT Nội Địa - Cước Vận Chuyển Nội Địa - Lợi Nhuận Nội Địa",
+                example: "Giá bán lại nội địa 1.200.000 VNĐ. Trừ Thuế NK, VAT, Cước nội địa & Lợi nhuận -> Giá CIF khấu trừ = 700.000 VNĐ/sp."
+            },
+            5: {
+                title: "Phương Pháp 5: Phương Pháp Tính Toán (Computed Value)",
+                desc: "Trị giá hải quan được xác định bằng cách cộng các chi phí cấu thành nên sản phẩm do nhà sản xuất nước ngoài cung cấp.",
+                conditions: [
+                    "Thường áp dụng khi người mua và người bán có mối quan hệ đặc biệt.",
+                    "Nhà sản xuất sẵn sàng cung cấp số liệu kế toán chi phí."
+                ],
+                formula: "Trị Giá Hải Quan = Chi Phí Nguyên Vật Liệu + Chi Phí Bán Lẻ/Sản Xuất + Lợi Nhuận Factory + F + I",
+                example: "Linh kiện riêng: Vật liệu 50$, Nhân công 30$, Lợi nhuận 10$, F+I = 10$ -> Trị giá = 100 USD/sp."
+            },
+            6: {
+                title: "Phương Pháp 6: Phương Pháp Suy Luận (Fallback Method)",
+                desc: "Xác định bằng các phương pháp hợp lý dựa trên tài liệu, dữ liệu có sẵn khi không áp dụng được P1-P5.",
+                conditions: [
+                    "Không dùng giá bán nội địa hàng sản xuất trong nước.",
+                    "Không dùng giá giả định hoặc không có căn cứ."
+                ],
+                formula: "Suy Luận Linh Hoạt từ P1 -> P5 (Bảng khấu hao, tham chiếu dữ liệu quốc tế)",
+                example: "Máy cũ 8 năm tuổi. Giá mới 800.000 USD. Tỷ lệ khấu hao 10 năm -> Trị giá còn lại = 20% x 800.000 = 160.000 USD."
+            }
+        };
+
+        function showMethod(num) {
+            document.querySelectorAll('.method-step').forEach(btn => btn.classList.remove('active'));
+            document.getElementById(`method-btn-${num}`).classList.add('active');
+
+            const m = methodsData[num];
+            const panel = document.getElementById('method-detail-panel');
+
+            panel.innerHTML = `
+                <div class="space-y-4">
+                    <div class="border-b pb-3">
+                        <span class="bg-brand-blue text-white text-xs px-2.5 py-1 rounded-md font-bold uppercase tracking-wide">Phương Pháp ${num}</span>
+                        <h3 class="text-xl font-bold text-slate-800 mt-2">${m.title}</h3>
+                        <p class="text-sm text-slate-600 mt-1">${m.desc}</p>
+                    </div>
+
+                    <div class="bg-sky-50 p-3.5 rounded-lg border border-sky-200">
+                        <h4 class="font-bold text-sky-900 text-xs uppercase mb-1 flex items-center gap-1">
+                            <i data-lucide="check-circle-2" class="w-4 h-4 text-brand-blue"></i> Điều Kiện Tiên Quyết Áp Dụng:
+                        </h4>
+                        <ul class="text-xs text-slate-700 space-y-1 list-disc list-inside">
+                            ${m.conditions.map(c => `<li>${c}</li>`).join('')}
+                        </ul>
+                    </div>
+
+                    <div class="bg-amber-50 p-3.5 rounded-lg border border-amber-200">
+                        <h4 class="font-bold text-amber-900 text-xs uppercase mb-1 flex items-center gap-1">
+                            <i data-lucide="calculator" class="w-4 h-4 text-brand-darkyellow"></i> Công Thức Nguyên Tắc:
+                        </h4>
+                        <code class="text-xs font-bold text-amber-950 block">${m.formula}</code>
+                    </div>
+
+                    <div class="bg-slate-50 p-3.5 rounded-lg border border-slate-200">
+                        <h4 class="font-bold text-slate-800 text-xs uppercase mb-1 flex items-center gap-1">
+                            <i data-lucide="lightbulb" class="w-4 h-4 text-amber-500"></i> Ví Dụ Thực Tế Giảng Dạy:
+                        </h4>
+                        <p class="text-xs text-slate-700 italic">${m.example}</p>
+                    </div>
+                </div>
+
+                <div class="pt-4 border-t flex justify-between items-center text-xs text-slate-500">
+                    <span>Thứ tự ưu tiên: <b>Bước ${num} / 6</b></span>
+                    <span class="text-sky-600 font-semibold">${num < 6 ? `Chỉ chuyển sang P${num+1} nếu P${num} không thỏa mãn` : 'Phương pháp cuối cùng'}</span>
+                </div>
+            `;
+            lucide.createIcons();
+        }
+
+        // FULL 29 BÀI TẬP TAB MINH HỌA
+        const exercisesList = [
+            { id: 1, part: "part1", title: "Bài 1: Tính Trị Giá Hải Quan Cơ Bản", text: "Hàng nhập khẩu có thông tin: Giá FOB = 5.500 USD, Cước vận tải F = 400 USD, Phí bảo hiểm I = 30 USD. Hãy tính trị giá hải quan.", solution: "<b>Trị giá hải quan (CIF)</b> = FOB + F + I = 5.500 + 400 + 30 = <b>5.930 USD</b>." },
+            { id: 2, part: "part1", title: "Bài 2: Tính Thuế Nhập Khẩu và VAT", text: "Biết Trị giá hải quan = 20.000 USD, Thuế NK = 5%, Thuế VAT = 10%. Hãy tính Thuế NK, Thuế GTGT và Tổng số thuế phải nộp.", solution: "1. Thuế NK = 20.000 x 5% = <b>1.000 USD</b>.<br>2. Giá tính VAT = 20.000 + 1.000 = 21.000 USD.<br>3. Thuế VAT = 21.000 x 10% = <b>2.100 USD</b>.<br>👉 <b>Tổng thuế phải nộp</b> = 1.000 + 2.100 = <b>3.100 USD</b>." },
+            { id: 3, part: "part1", title: "Bài 3: Áp Dụng Chính Sách Thuế Ưu Đãi Đặc Biệt (ATIGA)", text: "Doanh nghiệp nhập khẩu quần áo từ Thái Lan (ATIGA). Thuế MFN = 12%, ATIGA = 0%. Phân tích điều kiện và tính số thuế tiết kiệm.", solution: "<b>Điều kiện áp dụng ATIGA (0%):</b> Lô hàng có xuất xứ từ Thái Lan và có Chứng nhận xuất xứ (C/O Form D) hợp lệ.<br>👉 <b>Số thuế tiết kiệm:</b> Miễn toàn bộ 12% thuế nhập khẩu so với mức MFN." },
+            { id: 4, part: "part1", title: "Bài 4: Xác Định Phương Pháp Trị Giá Phù Hợp", text: "Tình huống 1: Không có invoice, hàng nhập giống kỳ trước.<br>Tình huống 2: Giá bán tại Việt Nam rõ ràng.<br>Tình huống 3: Không có thông tin giá, chỉ có giá tham khảo.", solution: "1. Hàng giống kỳ trước -> <b>Phương pháp 2 (Hàng giống hệt)</b>.<br>2. Dựa trên giá bán tại Việt Nam trừ chi phí -> <b>Phương pháp 4 (Khấu trừ)</b>.<br>3. Dựa trên giá tham khảo linh hoạt -> <b>Phương pháp 6 (Suy luận)</b>." },
+            { id: 5, part: "part2", title: "Bài 5: Máy Xay Sinh Tố (FOB Thượng Hải)", text: "Nhập khẩu 2.000 máy xay sinh tố FOB Thượng Hải. Đơn giá FOB: 25 USD/chiếc. Cước vận tải F = 4.000 USD. Bảo hiểm I = 800 USD. Xác định trị giá hải quan.", solution: "Giá FOB = 2.000 x 25 = 50.000 USD.<br>👉 <b>Trị giá hải quan (CIF)</b> = 50.000 + 4.000 + 800 = <b>54.800 USD</b>." },
+            { id: 6, part: "part2", title: "Bài 6: Hóa Chất Công Nghiệp (CIF Hải Phòng)", text: "Nhập khẩu hóa chất CIF Hải Phòng giá 150.000 USD. Không phát sinh khoản điều chỉnh nào khác. Xác định trị giá hải quan.", solution: "Vì lô hàng đã giao theo điều kiện CIF và không có điều chỉnh nào khác.<br>👉 <b>Trị giá hải quan</b> = <b>150.000 USD</b>." },
+            { id: 7, part: "part2", title: "Bài 7: Linh Kiện Nhựa & Khoản Trợ Giúp (Assists)", text: "Nhập 10.000 linh kiện FOB Busan đơn giá 3 USD/sp. F = 5.000 USD, I = 1.000 USD. Doanh nghiệp cung cấp miễn phí khuôn mẫu trị giá 20.000 USD sản xuất lô hàng này.", solution: "Giá FOB = 10.000 x 3 = 30.000 USD.<br>Khoản cộng (Trợ giúp khuôn mẫu) = 20.000 USD.<br>👉 <b>Trị giá hải quan</b> = 30.000 + 5.000 + 1.000 + 20.000 = <b>56.000 USD</b>." },
+            { id: 8, part: "part2", title: "Bài 8: Giày Thể Thao & Phí Bản Quyền (Royalty)", text: "Nhập giày thể thao CIF = 300.000 USD. Trả phí bản quyền 4% giá CIF (điều kiện bắt buộc bán hàng). Xác định trị giá hải quan.", solution: "Phí bản quyền phải cộng = 300.000 x 4% = 12.000 USD.<br>👉 <b>Trị giá hải quan</b> = 300.000 + 12.000 = <b>312.000 USD</b>." },
+            { id: 9, part: "part2", title: "Bài 9: Thép Xây Dựng & Khoản Trừ Vận Chuyển Nội Địa", text: "Giá trọn gói = 200.000 USD (Đã bao gồm F quốc tế = 10.000 USD và F nội địa từ Hải Phòng về kho = 5.000 USD). Xác định trị giá hải quan.", solution: "Chi phí vận chuyển nội địa sau nhập khẩu (5.000 USD) thuộc khoản trừ.<br>👉 <b>Trị giá hải quan</b> = 200.000 - 5.000 = <b>195.000 USD</b>." },
+            { id: 10, part: "part1", title: "Bài 10: Thiết Bị Điện (EXW Nhà Máy)", text: "Giá EXW = 100.000 USD. Vận chuyển nội địa nước xuất khẩu = 3.000 USD. F quốc tế = 8.000 USD. I = 1.000 USD. Xác định trị giá hải quan.", solution: "Với EXW, chi phí vận chuyển nội địa nước xuất khẩu phải cộng vào giá CIF.<br>👉 <b>Trị giá hải quan</b> = 100.000 + 3.000 + 8.000 + 1.000 = <b>112.000 USD</b>." },
+            { id: 11, part: "part2", title: "Bài 11: Sản Phẩm May Mặc & Cung Cấp Thiết Thiết Kế", text: "Nhập 5.000 sp FOB đơn giá 12 USD/sp. F = 6.000 USD, I = 1.200 USD. Cung cấp thiết kế mẫu làm ở nước ngoài trị giá 15.000 USD. Xác định trị giá hải quan.", solution: "FOB = 5.000 x 12 = 60.000 USD.<br>Khoản trợ giúp thiết kế = 15.000 USD.<br>👉 <b>Trị giá hải quan</b> = 60.000 + 6.000 + 1.200 + 15.000 = <b>82.200 USD</b>." },
+            { id: 12, part: "part2", title: "Bài 12: Máy Công Cụ & Chiết Khấu Thương Mại", text: "Giá niêm yết: 250.000 USD. Chiết khấu thương mại 8% ghi rõ trên hợp đồng/invoice. F = 12.000 USD, I = 2.000 USD.", solution: "Giá thực trả sau chiết khấu = 250.000 x (1 - 0,08) = 230.000 USD.<br>👉 <b>Trị giá hải quan</b> = 230.000 + 12.000 + 2.000 = <b>244.000 USD</b>." },
+            { id: 13, part: "part2", title: "Bài 13: Mỹ Phẩm (CIF + Bản Quyền - Vận Chuyển Nội Địa)", text: "CIF = 180.000 USD. Phí bản quyền 5% CIF. Vận chuyển nội địa VN ghi gộp trong CIF = 4.000 USD.", solution: "Cộng bản quyền = 180.000 x 5% = 9.000 USD.<br>Trừ vận chuyển nội địa = 4.000 USD.<br>👉 <b>Trị giá hải quan</b> = 180.000 + 9.000 - 4.000 = <b>185.000 USD</b>." },
+            { id: 14, part: "part2", title: "Bài 14: Linh Kiện Cơ Khí (Tổng Hợp Nhiều Điều Chỉnh)", text: "FOB = 1.500 x 200 = 300.000 USD. F = 15.000 USD, I = 3.000 USD. Trợ giúp = 25.000 USD. Bản quyền = 2% FOB. Vận chuyển nội địa VN = 6.000 USD (chưa gộp).", solution: "Bản quyền cộng = 300.000 x 2% = 6.000 USD.<br>Vận chuyển nội địa VN chưa gộp trong giá nên không cần trừ.<br>👉 <b>Trị giá hải quan</b> = 300.000 + 15.000 + 3.000 + 25.000 + 6.000 = <b>349.000 USD</b>." },
+            { id: 15, part: "part3", title: "Bài 15: Quan Hệ Mẹ - Con & Hàng Giống Hệt (P1 -> P2)", text: "Khai báo 50 USD/chiếc. Quan hệ mẹ - con, không chứng minh được giá độc lập. Lô hàng giống hệt nhập 2 tuần trước có CIF = 115 USD/chiếc.", solution: "1. <b>Bác bỏ P1</b> do quan hệ đặc biệt ảnh hưởng giá.<br>2. <b>Chuyển sang P2 (Hàng giống hệt)</b>.<br>👉 <b>Trị giá hải quan</b> = 5.000 x 115 = <b>575.000 USD</b>." },
+            { id: 16, part: "part3", title: "Bài 16: Điều Hòa Model X & Model Y (P2 -> P3)", text: "Nhập 1.000 điều hòa Model X khai báo 200 USD. Không có hàng giống hệt. Dữ liệu Model Y (cùng hãng, cùng công suất, khác kiểu dáng) CIF = 240 USD.", solution: "1. <b>Áp dụng Phương pháp 3 (Hàng tương tự)</b>.<br>👉 <b>Trị giá hải quan</b> = 1.000 x 240 = <b>240.000 USD</b>." },
+            { id: 17, part: "part3", title: "Bài 17: Thiết Bị Y Tế Đặt Riêng (Áp dụng P4 Khấu Trừ)", text: "Giá khai 500k USD không chấp nhận. Không có hàng giống hệt/tương tự. Giá bán lại nội địa = 18 tỷ VNĐ. Chi phí bán & lợi nhuận = 3 tỷ. Thuế NK = 10%.", solution: "<b>Áp dụng Phương pháp 4 (Khấu trừ)</b>.<br>Trị giá = (18 tỷ - 3 tỷ) / (1 + 10%) = 15 tỷ / 1,1 = <b>13,636,363,636 VNĐ</b>." },
+            { id: 18, part: "part3", title: "Bài 18: Linh Kiện Đặt Riêng (Áp dụng P5 Tính Toán)", text: "Nhà sản xuất cung cấp: Vật liệu = 80$, Sản xuất = 40$, Lợi nhuận = 20$, F+I = 10$. Nhập 2.000 sản phẩm.", solution: "<b>Áp dụng Phương pháp 5 (Tính toán)</b>.<br>Đơn giá = 80 + 40 + 20 + 10 = 150 USD/sp.<br>👉 <b>Tổng trị giá hải quan</b> = 2.000 x 150 = <b>300.000 USD</b>." },
+            { id: 19, part: "part3", title: "Bài 19: Dây Chuyền Cũ 8 Năm (Áp dụng P6 Khấu Hao)", text: "Thiết bị cũ 8 năm. Giá mới = 800.000 USD. Khấu hao 10 năm. Không có dữ liệu P1-P5.", solution: "<b>Áp dụng Phương pháp 6 (Suy luận)</b>.<br>Tỷ lệ còn lại = (10 - 8)/10 = 20%.<br>👉 <b>Trị giá hải quan</b> = 800.000 x 20% = <b>160.000 USD</b>." },
+            { id: 20, part: "part3", title: "Bài 20: Thép Cuộn Nghi Vấn Giá (P1 -> P2)", text: "Khai báo 400 $/tấn. Dữ liệu hàng giống hệt = 550 $/tấn. Doanh nghiệp không giải trình được.", solution: "1. <b>Bác bỏ P1</b>.<br>2. <b>Chuyển sang P2 (Hàng giống hệt)</b>.<br>👉 <b>Trị giá hải quan</b> = 1.000 x 550 = <b>550.000 USD</b>." },
+            { id: 21, part: "part3", title: "Bài 21: Máy Chuyên Ngành & Tham Chiếu Giá Quốc Tế", text: "Không bán lại nội địa, không có hàng giống/tương tự. Tham chiếu 3 nguồn: 98k $, 102k $, 100k $.", solution: "<b>Áp dụng Phương pháp 6 (Suy luận)</b>.<br>Lấy mức giá tham chiếu trung bình = <b>100.000 USD</b>." },
+            { id: 22, part: "part3", title: "Bài 22: Mua Từ Công Ty Mẹ Chứng Minh Giá Độc Lập", text: "Giá khai 70 $/sp từ công ty mẹ. Chứng minh được giá tương đương bán cho bên độc lập.", solution: "<b>ĐƯỢC chấp nhận Phương pháp 1</b> vì doanh nghiệp chứng minh mối quan hệ đặc biệt không ảnh hưởng đến giá." },
+            { id: 23, part: "part3", title: "Bài 23: Túi Xách Thiết Kế Riêng Bán Nội Địa", text: "Nhập 5.000 túi. Bán lại nội địa = 150 $/chiếc. Chi phí nội địa + lợi nhuận = 20 $/chiếc. Thuế NK = 10%.", solution: "<b>Áp dụng Phương pháp 4 (Khấu trừ)</b>.<br>Giá CIF = (150 - 20) / (1 + 10%) = 118,18 USD/chiếc.<br>👉 <b>Tổng trị giá</b> = 5.000 x 118,18 = <b>590.909 USD</b>." },
+            { id: 24, part: "part3", title: "Bài 24: Phần Mềm Tích Hợp Máy Móc", text: "Không có hàng vật chất tương tự/giống hệt. Dữ liệu tham khảo quốc tế 75.000 - 85.000 USD.", solution: "<b>Áp dụng Phương pháp 6 (Suy luận)</b> dựa trên dữ liệu giá tham chiếu quốc tế hợp pháp." },
+            { id: 25, part: "part4", title: "Bài 25: Tính Thuế Tổng Hợp Linh Kiện Điện Tử", text: "Nhập 10.000 sp FOB 5$/sp. F = 2.000$, I = 500$. MFN = 10%, VAT = 10%, Tỷ giá = 24.000.", solution: "1. CIF = 52.500 USD = <b>1.260.000.000 VNĐ</b>.<br>2. Thuế NK = 1.260tr x 10% = <b>126.000.000 VNĐ</b>.<br>3. Thuế VAT = (1.260tr + 126tr) x 10% = <b>138.600.000 VNĐ</b>.<br>👉 <b>Tổng thuế</b> = <b>264.600.000 VNĐ</b>." },
+            { id: 26, part: "part4", title: "Bài 26: Nhập Vải Từ Trung Quốc Có C/O Form E", text: "CIF = 100.000 USD. MFN = 12%, Form E = 5%, VAT = 10%, Tỷ giá = 24.000.", solution: "CIF = 2.400.000.000 VNĐ.<br>1. Thuế NK (Form E 5%) = <b>120.000.000 VNĐ</b>.<br>2. Thuế VAT = (2.400tr + 120tr) x 10% = <b>252.000.000 VNĐ</b>.<br>👉 <b>Tổng thuế nộp</b> = <b>372.000.000 VNĐ</b>." },
+            { id: 27, part: "part4", title: "Bài 27: Nhập Khẩu Rượu Vang Từ Pháp (Có Thuế TTĐB)", text: "CIF = 50.000 USD. Thuế NK = 20%, TTĐB = 65%, VAT = 10%, Tỷ giá = 24.000.", solution: "CIF = 1.200.000.000 VNĐ.<br>1. Thuế NK = <b>240.000.000 VNĐ</b>.<br>2. Thuế TTĐB = (1.200tr + 240tr) x 65% = <b>936.000.000 VNĐ</b>.<br>3. Thuế VAT = (1.200tr + 240tr + 936tr) x 10% = <b>237.600.000 VNĐ</b>.<br>👉 <b>Tổng thuế phải nộp</b> = <b>1.413.600.000 VNĐ</b>." },
+            { id: 28, part: "part4", title: "Bài 28: Thép Cán Nguội (Có Thuế Chống Bán Phá Giá)", text: "CIF = 200.000 USD. Thuế NK = 5%, Chống bán phá giá = 15%, VAT = 10%, Tỷ giá = 24.000.", solution: "CIF = 4.800.000.000 VNĐ.<br>1. Thuế NK = <b>240.000.000 VNĐ</b>.<br>2. Thuế CBPG = <b>720.000.000 VNĐ</b>.<br>3. Thuế VAT = (4.800tr + 240tr + 720tr) x 10% = <b>576.000.000 VNĐ</b>.<br>👉 <b>Tổng thuế nộp</b> = <b>1.536.000.000 VNĐ</b>." },
+            { id: 29, part: "part4", title: "Bài 29: Ô Tô Dưới 9 Chỗ (Tổng Hợp C/O FTA, TTĐB, VAT)", text: "10 xe FOB 25k $/xe. F = 15.000$, I = 5.000$. C/O AJ FTA (NK = 50%), TTĐB = 45%, VAT = 10%, Tỷ giá = 24.000.", solution: "CIF USD = 270.000 USD = <b>6.480.000.000 VNĐ</b>.<br>1. Thuế NK (FTA 50%) = <b>3.240.000.000 VNĐ</b>.<br>2. Thuế TTĐB = (6.480tr + 3.240tr) x 45% = <b>4.374.000.000 VNĐ</b>.<br>3. Thuế VAT = (6.480tr + 3.240tr + 4.374tr) x 10% = <b>1.409.400.000 VNĐ</b>.<br>👉 <b>TỔNG THUẾ PHẢI NỘP</b> = <b>9.023.400.000 VNĐ</b>." }
+        ];
+
+        function filterExercises() {
+            const cat = document.getElementById('exercise-category').value;
+            const search = document.getElementById('exercise-search').value.toLowerCase();
+            const container = document.getElementById('exercise-list-container');
+
+            const filtered = exercisesList.filter(ex => {
+                const matchCat = cat === 'all' || ex.part === cat;
+                const matchSearch = ex.title.toLowerCase().includes(search) || ex.text.toLowerCase().includes(search);
+                return matchCat && matchSearch;
+            });
+
+            container.innerHTML = filtered.map(ex => `
+                <div class="bg-white p-4 rounded-xl shadow-md border border-slate-200 space-y-3">
+                    <div class="flex items-center justify-between border-b pb-2">
+                        <h4 class="font-bold text-sky-900 text-sm flex items-center gap-2">
+                            <i data-lucide="file-text" class="w-4 h-4 text-brand-blue"></i> ${ex.title}
+                        </h4>
+                        <span class="text-xs bg-sky-100 text-sky-800 font-bold px-2.5 py-0.5 rounded-full">Bài Tập Minh Họa</span>
+                    </div>
+                    <p class="text-xs text-slate-700 font-medium">${ex.text}</p>
+                    <div class="bg-emerald-50/80 p-3 rounded-lg border border-emerald-200 text-xs text-emerald-950">
+                        <span class="font-bold text-emerald-800 block mb-1">Hướng Dẫn Lời Giải:</span>
+                        <div>${ex.solution}</div>
+                    </div>
+                </div>
+            `).join('');
+            lucide.createIcons();
+        }
+
+        // DANH SÁCH 30 BÀI TẬP TAB KIỂM TRA (DÀNH CHO SINH VIÊN LÀM VÀ XUẤT PDF)
+        const exam30Questions = [
+            { id: 1, title: "Câu 1: Tính trị giá CIF cơ bản", req: "Lô hàng nhập khẩu theo giá FOB = 12.000 USD. Chi phí vận tải biển F = 1.200 USD, Bảo hiểm I = 150 USD. Tính trị giá Hải quan (CIF) bằng USD." },
+            { id: 2, title: "Câu 2: Tính Thuế Nhập Khẩu đơn giản", req: "Lô hàng có trị giá CIF = 25.000 USD. Thuế suất Thuế NK MFN = 10%. Tỷ giá tính thuế = 24.000 VND/USD. Tính Thuế NK phải nộp (VND)." },
+            { id: 3, title: "Câu 3: Khoản điều chỉnh cộng (Assists)", req: "Giá FOB = 30.000 USD, F = 2.000 USD, I = 500 USD. Người mua cung cấp miễn phí cho người bán khuôn đúc trị giá 5.000 USD để sản xuất. Tính Trị giá Hải quan (USD)." },
+            { id: 4, title: "Câu 4: Khoản điều chỉnh trừ (Nội địa)", req: "Hợp đồng giao hàng trọn gói về kho người mua giá 50.000 USD (bao gồm F quốc tế = 3.000 USD, I = 500 USD, Vận chuyển nội địa từ cảng VN về kho = 1.500 USD). Tính Trị giá Hải quan (USD)." },
+            { id: 5, title: "Câu 5: Điều kiện EXW (Ex-Works)", req: "Mua hàng giá EXW tại xưởng nước ngoài = 40.000 USD. Chi phí vận chuyển nội địa nước xuất khẩu ra cảng = 1.000 USD. F quốc tế = 3.500 USD, I = 200 USD. Tính trị giá CIF (USD)." },
+            { id: 6, title: "Câu 6: Phí bản quyền (Royalty)", req: "Lô hàng mỹ phẩm giá CIF = 80.000 USD. Theo hợp đồng, người mua phải trả thêm phí bản quyền nhãn hiệu 5% tính trên giá CIF để được bán hàng tại VN. Tính trị giá tính thuế (USD)." },
+            { id: 7, title: "Câu 7: Chiết khấu thương mại", req: "Lô máy móc giá niêm yết 100.000 USD. Hợp đồng quy định chiết khấu thương mại 10% công khai. F = 5.000 USD, I = 1.000 USD. Tính trị giá CIF thực tế (USD)." },
+            { id: 8, title: "Câu 8: Thuế GTGT (VAT) hàng nhập khẩu", req: "Lô hàng có CIF = 10.000 USD, Thuế NK = 1.000 USD. Thuế suất VAT = 10%. Tỷ giá = 24.000 VND/USD. Tính số thuế VAT phải nộp tại khâu nhập khẩu (VND)." },
+            { id: 9, title: "Câu 9: Thuế Tiêu thụ đặc biệt (TTĐB)", req: "Lô rượu nhập khẩu có CIF = 20.000 USD. Thuế NK = 30%, Thuế TTĐB = 65%. Tỷ giá = 24.000 VND/USD. Tính số thuế TTĐB phải nộp (VND)." },
+            { id: 10, title: "Câu 10: Thuế Phòng vệ thương mại (CBPG)", req: "Thép nhập khẩu CIF = 100.000 USD. Thuế NK = 5%, Thuế chống bán phá giá = 15%. Tỷ giá = 24.000 VND/USD. Tính tổng tiền thuế NK + CBPG (VND)." },
+            { id: 11, title: "Câu 11: Ưu đãi thuế quan FTA (C/O Form D)", req: "Lô hàng từ Malaysia có C/O Form D hợp lệ. Thuế MFN = 15%, Thuế ATIGA = 0%. Trị giá CIF = 50.000 USD. Xác định số tiền thuế NK được giảm nhờ C/O (VND, tỷ giá 24.000)." },
+            { id: 12, title: "Câu 12: Thứ tự tính thuế chuẩn", req: "Hãy nêu ngắn gọn thứ tự 4 bước tính các loại thuế (NK, TTĐB, PVTM, VAT) đối với 1 lô hàng nhập khẩu có phát sinh đủ các sắc thuế này." },
+            { id: 13, title: "Câu 13: Bác bỏ Phương pháp 1 (Quan hệ đặc biệt)", req: "Công ty mẹ bán cho công ty con tại VN với giá 30 USD/sp (giá thị trường 80 USD/sp) và không chứng minh được tính độc lập. Hải quan sẽ xử lý theo phương pháp nào?" },
+            { id: 14, title: "Câu 14: Phương pháp 2 (Hàng giống hệt)", req: "Nêu 3 điều kiện cốt lõi để một lô hàng được coi là 'Hàng hóa giống hệt' so với lô hàng đang xác định trị giá." },
+            { id: 15, title: "Câu 15: Phương pháp 3 (Hàng tương tự)", req: "Hàng hóa tương tự khác hàng hóa giống hệt ở điểm mấu chốt nào? Cho 1 ví dụ minh họa." },
+            { id: 16, title: "Câu 16: Phương pháp 4 (Khấu trừ)", req: "Công thức tổng quát tính Trị giá Hải quan theo Phương pháp khấu trừ từ đơn giá bán lại trên thị trường nội địa." },
+            { id: 17, title: "Câu 17: Phương pháp 5 (Tính toán)", req: "Phương pháp tính toán trị giá dựa trên những nhóm chi phí cấu thành nào do nhà sản xuất nước ngoài cung cấp?" },
+            { id: 18, title: "Câu 18: Phương pháp 6 (Suy luận)", req: "Nêu 2 nguyên tắc BẮT BUỘC KHÔNG ĐƯỢC ÁP DỤNG khi xác định trị giá theo Phương pháp suy luận." },
+            { id: 19, title: "Câu 19: Tính toán tổng hợp ô tô nhập khẩu", req: "1 xe ô tô CIF = 30.000 USD. Thuế NK = 50%, TTĐB = 50%, VAT = 10%. Tỷ giá 24.000. Tính tổng tiền thuế phải nộp cho 1 xe (VND)." },
+            { id: 20, title: "Câu 20: Phí dịch vụ bốc dỡ tại cảng đi", req: "Chi phí bốc dỡ hàng lên tàu tại cảng xuất khẩu (Origin Handling Charges) chưa tính trong giá FOB. Chi phí này có phải cộng vào trị giá tính thuế không?" },
+            { id: 21, title: "Câu 21: Phí dịch vụ bốc dỡ tại cảng đến", req: "Chi phí dỡ hàng từ tàu xuống bãi tại cảng nhập khẩu Việt Nam (DTHC) phát sinh sau khi tàu cập cảng. Chi phí này có tính vào trị giá hải quan không?" },
+            { id: 22, title: "Câu 22: Thiết kế làm tại Việt Nam", req: "Người mua Việt Nam tự thiết kế mẫu sản phẩm tại VN và gửi miễn phí sang nước ngoài để sản xuất. Phí thiết kế này có cộng vào trị giá hải quan không? Tại sao?" },
+            { id: 23, title: "Câu 23: Lãi vay trả cho việc tài trợ mua hàng", req: "Khoản tiền lãi phát sinh từ hợp đồng vay tài chính để mua lô hàng nhập khẩu có được trừ/loại khỏi trị giá hải quan không? Điều kiện là gì?" },
+            { id: 24, title: "Câu 24: Thời hạn quy định xuất xứ C/O", req: "Chứng nhận xuất xứ (C/O) phục vụ áp dụng thuế suất ưu đãi đặc biệt có thời hạn hiệu lực tối đa bao lâu kể từ ngày cấp?" },
+            { id: 25, title: "Câu 25: Tỷ giá quy đổi ngoại tệ tính thuế", req: "Tỷ giá hối đoái dùng để tính thuế hải quan là tỷ giá của cơ quan/ngân hàng nào và xác định tại thời điểm nào?" },
+            { id: 26, title: "Câu 26: Bài toán tính VAT khi có Thuế TTĐB", req: "Lô hàng CIF = 500 triệu VNĐ. Thuế NK = 100 triệu, Thuế TTĐB = 300 triệu. Tính Thuế VAT (10%) phải nộp (VNĐ)." },
+            { id: 27, title: "Câu 27: Phân biệt MFN và Ưu đãi đặc biệt", req: "Sự khác biệt căn bản giữa Thuế suất MFN và Thuế suất Ưu đãi đặc biệt (FTA) trong Biểu thuế xuất nhập khẩu." },
+            { id: 28, title: "Câu 28: Khái niệm 'Khoảng thời gian gần nhất'", req: "Trong Phương pháp 2 và 3, lô hàng đối chiếu phải được xuất khẩu trong khoảng thời gian tối đa bao nhiêu ngày so với lô hàng đang xác định?" },
+            { id: 29, title: "Câu 29: Trị giá tính thuế hàng xuất khẩu", req: "Trị giá hải quan đối với hàng hóa XUẤT KHẨU của Việt Nam thông thường được xác định theo điều kiện giao hàng nào tại cửa khẩu xuất?" },
+            { id: 30, title: "Câu 30: Bài toán tổng hợp thuế & chi phí", req: "Nhập khẩu lô thiết bị: FOB = 100.000 USD, F = 8.000 USD, I = 2.000 USD. Thuế NK = 10%, VAT = 10%. Tỷ giá = 24.000. Tính tổng chi phí lô hàng đã bao gồm toàn bộ thuế (VND)." }
+        ];
+
+        // RENDER EXAM QUESTIONS LIST
+        function renderExamQuestions() {
+            const container = document.getElementById('exam-questions-list');
+            container.innerHTML = exam30Questions.map(q => `
+                <div class="bg-white p-4 rounded-xl border border-slate-200 shadow-sm space-y-2">
+                    <div class="flex items-center justify-between border-b pb-2">
+                        <span class="font-bold text-sky-900 text-xs md:text-sm flex items-center gap-1.5">
+                            <i data-lucide="help-circle" class="w-4 h-4 text-emerald-600"></i> ${q.title}
+                        </span>
+                        <span class="text-[10px] bg-slate-100 text-slate-600 font-bold px-2 py-0.5 rounded">Bài ${q.id}/30</span>
+                    </div>
+                    <p class="text-xs text-slate-700 font-medium">${q.req}</p>
+                    <div>
+                        <textarea id="exam-answer-${q.id}" rows="2" placeholder="Nhập câu trả lời / lời giải chi tiết của sinh viên tại đây..." class="w-full text-xs p-2.5 border border-slate-300 rounded-lg focus:ring-2 focus:ring-emerald-500 outline-none text-slate-800 bg-slate-50/50"></textarea>
+                    </div>
+                </div>
+            `).join('');
+            lucide.createIcons();
+        }
+
+        // XUẤT PDF BÀI LÀM SINH VIÊN
+        function exportStudentPDF() {
+            const name = document.getElementById('student-name').value.trim();
+            const id = document.getElementById('student-id').value.trim();
+
+            if (!name || !id) {
+                alert('VUI LÒNG NHẬP HỌ VÀ TÊN VÀ MÃ SỐ SINH VIÊN TRƯỚC KHI XUẤT BÀI LÀM!');
+                document.getElementById('student-name').focus();
+                return;
+            }
+
+            const orientation = document.getElementById('pdf-orientation').value;
+
+            // Xây dựng template HTML bài làm
+            let answersHtml = '';
+            exam30Questions.forEach(q => {
+                const ans = document.getElementById(`exam-answer-${q.id}`).value.trim() || "(Sinh viên chưa trả lời)";
+                answersHtml += `
+                    <div style="margin-bottom: 12px; padding: 8px; border: 1px solid #cbd5e1; border-radius: 6px; page-break-inside: avoid;">
+                        <div style="font-weight: bold; font-size: 11px; color: #0369a1; margin-bottom: 4px;">${q.title}</div>
+                        <div style="font-size: 10px; color: #334155; margin-bottom: 6px;"><b>Đề bài:</b> ${q.req}</div>
+                        <div style="font-size: 10px; color: #0f172a; background: #f8fafc; padding: 6px; border-left: 3px solid #10b981;">
+                            <b>Bài làm:</b><br>${ans.replace(/\n/g, '<br>')}
+                        </div>
+                    </div>
+                `;
+            });
+
+            const template = document.getElementById('pdf-export-template');
+            template.innerHTML = `
+                <div style="font-family: Arial, sans-serif; padding: 10px;">
+                    <div style="text-align: center; border-bottom: 2px solid #0284c7; padding-bottom: 10px; margin-bottom: 15px;">
+                        <h2 style="margin: 0; font-size: 16px; color: #0369a1; text-transform: uppercase;">BÀI LÀM KIỂM TRA CHƯƠNG 4: THUẾ & TRỊ GIÁ HẢI QUAN</h2>
+                        <p style="margin: 4px 0 0 0; font-size: 11px; color: #475569;">Phần Mềm Mô Phỏng Giảng Dạy Khai Báo Hải Quan & Thuế</p>
+                    </div>
+
+                    <table style="width: 100%; font-size: 11px; margin-bottom: 15px; background: #f1f5f9; padding: 8px; border-radius: 6px; border: 1px solid #cbd5e1;">
+                        <tr>
+                            <td style="width: 50%;"><b>Họ và tên sinh viên:</b> ${name}</td>
+                            <td style="width: 50%;"><b>Mã số sinh viên (MSSV):</b> ${id}</td>
+                        </tr>
+                        <tr>
+                            <td style="margin-top: 4px;"><b>Ngày thực hiện:</b> ${new Date().toLocaleDateString('vi-VN')}</td>
+                            <td style="margin-top: 4px;"><b>Số lượng bài làm:</b> 30 CÂU TỔNG HỢP</td>
+                        </tr>
+                    </table>
+
+                    <div style="margin-top: 10px;">
+                        ${answersHtml}
+                    </div>
+
+                    <div style="margin-top: 20px; text-align: right; font-size: 10px; color: #64748b; border-top: 1px solid #e2e8f0; padding-top: 6px;">
+                        Xác nhận nộp bài làm hệ thống trực tuyến - Chữ ký sinh viên: .......................................
+                    </div>
+                </div>
+            `;
+
+            const opt = {
+                margin:       8,
+                filename:     `Bai_Lam_Kiem_Tra_${id}_${name.replace(/\s+/g, '_')}.pdf`,
+                image:        { type: 'jpeg', quality: 0.98 },
+                html2canvas:  { scale: 2, useCORS: true },
+                jsPDF:        { unit: 'mm', format: 'a4', orientation: orientation === 'l' ? 'landscape' : 'portrait' }
+            };
+
+            html2pdf().set(opt).from(template).save();
+        }
+
+        // GV MODAL & AUTHENTICATION
+        function openGVModal() {
+            document.getElementById('gv-pass-input').value = '';
+            document.getElementById('gv-error-msg').classList.add('hidden');
+            document.getElementById('gv-modal').classList.remove('hidden');
+            document.getElementById('gv-pass-input').focus();
+        }
+
+        function closeGVModal() {
+            document.getElementById('gv-modal').classList.add('hidden');
+        }
+
+        function verifyGVPass() {
+            const pass = document.getElementById('gv-pass-input').value;
+            if (pass === 'CDCT@1976') {
+                closeGVModal();
+                renderGVAnswers();
+                document.getElementById('gv-answers-modal').classList.remove('hidden');
+            } else {
+                document.getElementById('gv-error-msg').classList.remove('hidden');
+            }
+        }
+
+        function closeGVAnswersModal() {
+            document.getElementById('gv-answers-modal').classList.add('hidden');
+        }
+
+        // RENDER ĐÁP ÁN 30 BÀI TẬP CHO GIẢNG VIÊN
+        const gv30AnswersData = [
+            { id: 1, title: "Câu 1: Tính trị giá CIF cơ bản", ans: "<b>Đáp án: 13.350 USD</b><br>Lời giải: Trị giá CIF = FOB + F + I = 12.000 + 1.200 + 150 = 13.350 USD." },
+            { id: 2, title: "Câu 2: Tính Thuế Nhập Khẩu đơn giản", ans: "<b>Đáp án: 60.000.000 VNĐ</b><br>Lời giải: Trị giá VND = 25.000 x 24.000 = 600.000.000 VNĐ.<br>Thuế NK = 600.000.000 x 10% = 60.000.000 VNĐ." },
+            { id: 3, title: "Câu 3: Khoản điều chỉnh cộng (Assists)", ans: "<b>Đáp án: 37.500 USD</b><br>Lời giải: Trị giá CIF = 30.000 (FOB) + 2.000 (F) + 500 (I) + 5.000 (Trợ giúp khuôn mẫu) = 37.500 USD." },
+            { id: 4, title: "Câu 4: Khoản điều chỉnh trừ (Nội địa)", ans: "<b>Đáp án: 48.500 USD</b><br>Lời giải: Vận chuyển nội địa VN (1.500 USD) thuộc khoản trừ.<br>Trị giá hải quan = 50.000 - 1.500 = 48.500 USD." },
+            { id: 5, title: "Câu 5: Điều kiện EXW (Ex-Works)", ans: "<b>Đáp án: 45.700 USD</b><br>Lời giải: CIF = EXW + Vận chuyển nội địa nước xuất + F + I = 40.000 + 1.000 + 3.500 + 200 = 45.700 USD." },
+            { id: 6, title: "Câu 6: Phí bản quyền (Royalty)", ans: "<b>Đáp án: 84.000 USD</b><br>Lời giải: Bản quyền cộng = 80.000 x 5% = 4.000 USD.<br>Trị giá hải quan = 80.000 + 4.000 = 84.000 USD." },
+            { id: 7, title: "Câu 7: Chiết khấu thương mại", ans: "<b>Đáp án: 96.000 USD</b><br>Lời giải: Giá thực trả = 100.000 x 90% = 90.000 USD.<br>CIF = 90.000 + 5.000 + 1.000 = 96.000 USD." },
+            { id: 8, title: "Câu 8: Thuế GTGT (VAT) hàng nhập khẩu", ans: "<b>Đáp án: 26.400.000 VNĐ</b><br>Lời giải: Giá tính VAT = (10.000 + 1.000) x 24.000 = 264.000.000 VNĐ.<br>Thuế VAT = 264.000.000 x 10% = 26.400.000 VNĐ." },
+            { id: 9, title: "Câu 9: Thuế Tiêu thụ đặc biệt (TTĐB)", ans: "<b>Đáp án: 405.600.000 VNĐ</b><br>Lời giải: CIF VND = 20.000 x 24.000 = 480.000.000 VNĐ.<br>Thuế NK = 480tr x 30% = 144.000.000 VNĐ.<br>Thuế TTĐB = (480tr + 144tr) x 65% = 405.600.000 VNĐ." },
+            { id: 10, title: "Câu 10: Thuế Phòng vệ thương mại (CBPG)", ans: "<b>Đáp án: 480.000.000 VNĐ</b><br>Lời giải: CIF VND = 2.400.000.000 VNĐ.<br>Thuế NK (5%) = 120.000.000 VNĐ.<br>Thuế CBPG (15%) = 360.000.000 VNĐ.<br>Tổng thuế = 120tr + 360tr = 480.000.000 VNĐ." },
+            { id: 11, title: "Câu 11: Ưu đãi thuế quan FTA (C/O Form D)", ans: "<b>Đáp án: Tiết kiệm 180.000.000 VNĐ</b><br>Lời giải: Giá trị lô hàng = 1,2 tỷ VNĐ.<br>Số thuế tiết kiệm = 1,2 tỷ x (15% - 0%) = 180.000.000 VNĐ." },
+            { id: 12, title: "Câu 12: Thứ tự tính thuế chuẩn", ans: "<b>Đáp án chuẩn:</b><br>Bước 1: Tính Thuế Nhập Khẩu (CIF x %NK).<br>Bước 2: Tính Thuế TTĐB ((CIF + NK) x %TTĐB).<br>Bước 3: Tính Thuế PVTM (CIF x %PVTM).<br>Bước 4: Tính Thuế VAT ((CIF + NK + TTĐB + PVTM) x %VAT)." },
+            { id: 13, title: "Câu 13: Bác bỏ Phương pháp 1 (Quan hệ đặc biệt)", ans: "<b>Đáp án: Bác bỏ Phương pháp 1, chuyển sang Phương pháp 2 (Hàng giống hệt)</b> nếu có dữ liệu, hoặc các phương pháp tiếp theo (P3->P6)." },
+            { id: 14, title: "Câu 14: Phương pháp 2 (Hàng giống hệt)", ans: "<b>Đáp án:</b> 3 điều kiện: 1. Giống hệt về vật lý, chất lượng, nhãn hiệu; 2. Cùng nước sản xuất & nhà sản xuất; 3. Xuất khẩu cùng thời điểm (trong vòng 60 ngày)." },
+            { id: 15, title: "Câu 15: Phương pháp 3 (Hàng tương tự)", ans: "<b>Đáp án:</b> Khác biệt: Không nhất thiết phải giống hệt tuyệt đối về kiểu dáng/mã hiệu, chỉ cần cùng chức năng, cùng thành phần cấu tạo và có thể thay thế cho nhau trong thương mại." },
+            { id: 16, title: "Câu 16: Phương pháp 4 (Khấu trừ)", ans: "<b>Đáp án:</b> Trị giá Hải quan = Đơn giá bán nội địa - Thuế NK & VAT nội địa - Chi phí vận chuyển/bảo hiểm nội địa - Chi phí quản lý & Lợi nhuận nội địa." },
+            { id: 17, title: "Câu 17: Phương pháp 5 (Tính toán)", ans: "<b>Đáp án:</b> Bao gồm: 1. Chi phí nguyên vật liệu & sản xuất; 2. Chi phí chung & lợi nhuận của nhà sản xuất; 3. Cước vận tải F và bảo hiểm I quốc tế." },
+            { id: 18, title: "Câu 18: Phương pháp 6 (Suy luận)", ans: "<b>Đáp án: KHÔNG ĐƯỢC DÙNG:</b> 1. Giá bán nội địa của hàng sản xuất trong nước; 2. Giá cao hơn trong hai giá tham chiếu; 3. Giá tại thị trường nội địa nước xuất khẩu; 4. Giá giả định." },
+            { id: 19, title: "Câu 19: Tính toán tổng hợp ô tô nhập khẩu", ans: "<b>Đáp án: 1.026.000.000 VNĐ / xe</b><br>Lời giải: CIF = 720 triệu VNĐ.<br>1. Thuế NK (50%) = 360 triệu.<br>2. Thuế TTĐB (50%) = (720 + 360) x 50% = 540 triệu.<br>3. Thuế VAT (10%) = (720 + 360 + 540) x 10% = 162 triệu.<br>Tổng thuế = 360 + 540 + 162 = 1.026.000.000 VNĐ." },
+            { id: 20, title: "Câu 20: Phí dịch vụ bốc dỡ tại cảng đi", ans: "<b>Đáp án: CÓ PHẢI CỘNG.</b> Vì mọi chi phí phát sinh trước khi hàng đến cửa khẩu nhập đầu tiên (bao gồm bốc dỡ tại cảng xuất) đều nằm trong cấu thành giá CIF." },
+            { id: 21, title: "Câu 21: Phí dịch vụ bốc dỡ tại cảng đến", ans: "<b>Đáp án: KHÔNG TÍNH.</b> Chi phí bốc dỡ phát sinh sau khi hàng đã đến cửa khẩu nhập thuộc khoản trừ (loại trừ khỏi trị giá tính thuế)." },
+            { id: 22, title: "Câu 22: Thiết kế làm tại Việt Nam", ans: "<b>Đáp án: KHÔNG CỘNG.</b> Theo quy định WTO và Luật Hải quan, khoản trợ giúp kỹ thuật/thiết kế do người mua thực hiện TẠI VIỆT NAM được miễn cộng vào trị giá hải quan." },
+            { id: 23, title: "Câu 23: Lãi vay trả cho việc tài trợ mua hàng", ans: "<b>Đáp án: ĐƯỢC LOẠI TRỪ.</b> Điều kiện: Tiền lãi thể hiện riêng biệt trên hợp đồng và mức lãi suất không vượt quá mức lãi suất thông thường thị trường." },
+            { id: 24, title: "Câu 24: Thời hạn quy định xuất xứ C/O", ans: "<b>Đáp án: 12 THÁNG (1 NĂM)</b> kể từ ngày cấp bởi cơ quan có thẩm quyền của nước xuất khẩu." },
+            { id: 25, title: "Câu 25: Tỷ giá quy đổi ngoại tệ tính thuế", ans: "<b>Đáp án:</b> Tỷ giá ngoại tệ do Ngân hàng Nhà nước Việt Nam công bố (hoặc ngân hàng thương mại nơi mở tờ khai) tại thời điểm đăng ký tờ khai hải quan." },
+            { id: 26, title: "Câu 26: Bài toán tính VAT khi có Thuế TTĐB", ans: "<b>Đáp án: 90.000.000 VNĐ</b><br>Lời giải: Giá tính VAT = 500tr + 100tr + 300tr = 900 triệu VNĐ.<br>Thuế VAT (10%) = 900tr x 10% = 90 triệu VNĐ." },
+            { id: 27, title: "Câu 27: Phân biệt MFN và Ưu đãi đặc biệt", ans: "<b>Đáp án:</b> MFN áp dụng cho tất cả các nước thành viên WTO. Thuế ưu đãi đặc biệt (FTA) áp dụng cho các nước có ký kết hiệp định thương mại tự do riêng với VN và phải xuất trình C/O hợp lệ." },
+            { id: 28, title: "Câu 28: Khái niệm 'Khoảng thời gian gần nhất'", ans: "<b>Đáp án: 60 NGÀY</b> trước hoặc sau ngày xuất khẩu lô hàng đang được xác định trị giá." },
+            { id: 29, title: "Câu 29: Trị giá tính thuế hàng xuất khẩu", ans: "<b>Đáp án: GIÁ FOB / DAF</b> (Giá bán tại cửa khẩu xuất chưa bao gồm phí vận tải F và bảo hiểm I quốc tế)." },
+            { id: 30, title: "Câu 30: Bài toán tổng hợp thuế & chi phí", ans: "<b>Đáp án: TỔNG CHI PHÍ LÔ HÀNG = 3.194.400.000 VNĐ</b><br>Lời giải:<br>1. CIF USD = 100.000 + 8.000 + 2.000 = 110.000 USD = 2.640.000.000 VNĐ.<br>2. Thuế NK (10%) = 264.000.000 VNĐ.<br>3. Thuế VAT (10%) = (2.640tr + 264tr) x 10% = 290.400.000 VNĐ.<br>👉 Tổng chi phí = 2.640tr + 264tr + 290,4tr = 3.194.400.000 VNĐ." }
+        ];
+
+        function renderGVAnswers() {
+            const container = document.getElementById('gv-answers-content');
+            container.innerHTML = gv30AnswersData.map(a => `
+                <div class="bg-slate-50 p-3.5 rounded-xl border border-slate-200 space-y-1">
+                    <div class="font-bold text-sky-900 text-xs flex items-center gap-1.5 border-b pb-1">
+                        <i data-lucide="check-square" class="w-4 h-4 text-emerald-600"></i> ${a.title}
+                    </div>
+                    <div class="text-slate-800 text-xs pt-1">${a.ans}</div>
+                </div>
+            `).join('');
+            lucide.createIcons();
+        }
+
+        // INITIALIZATION
+        document.addEventListener('DOMContentLoaded', () => {
+            showMethod(1);
+            filterExercises();
+            renderExamQuestions();
+        });
+    </script>
+</body>
+</html>
