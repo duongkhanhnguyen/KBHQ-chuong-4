@@ -85,6 +85,10 @@
                 <button onclick="switchTab('exercises')" id="btn-exercises" class="tab-btn px-3 py-1.5 rounded-lg text-xs md:text-sm font-semibold flex items-center gap-1.5 transition-all hover:bg-white/20">
                     <i data-lucide="file-spreadsheet" class="w-4 h-4"></i> Bài Tập Minh Họa
                 </button>
+                <!-- TAB BỔ SUNG: THỰC HÀNH -->
+                <button onclick="switchTab('practice')" id="btn-practice" class="tab-btn px-3 py-1.5 rounded-lg text-xs md:text-sm font-semibold flex items-center gap-1.5 transition-all bg-violet-600 hover:bg-violet-500 text-white">
+                    <i data-lucide="calculator" class="w-4 h-4"></i> Thực Hành (8 Tình Huống)
+                </button>
                 <!-- TAB BỔ SUNG: KIỂM TRA -->
                 <button onclick="switchTab('exam')" id="btn-exam" class="tab-btn px-3 py-1.5 rounded-lg text-xs md:text-sm font-semibold flex items-center gap-1.5 transition-all bg-emerald-600 hover:bg-emerald-500 text-white shadow">
                     <i data-lucide="pen-tool" class="w-4 h-4"></i> Kiểm Tra (30 Bài)
@@ -558,6 +562,36 @@
             <div id="exam-questions-list" class="space-y-4">
                 <!-- Javascript render 30 câu hỏi dạng ô input -->
             </div>
+        </section>
+
+        <!-- TAB THỰC HÀNH: SINH VIÊN TỰ TÍNH TOÁN, SUY LUẬN - XUẤT PDF NỘP BÀI -->
+        <section id="tab-practice" class="tab-content hidden space-y-6">
+            <div class="bg-violet-50 border-l-4 border-violet-600 p-5 rounded-r-xl shadow-sm flex items-start gap-3">
+                <i data-lucide="calculator" class="w-8 h-8 text-violet-600 shrink-0 mt-1"></i>
+                <div>
+                    <h2 class="text-lg font-bold text-violet-950">Thực Hành Tính Toán Chương 4 – 8 Tình Huống Hồ Sơ Hải Quan</h2>
+                    <p class="text-xs text-violet-800 mt-1">Mỗi sinh viên nhận <b>bộ số liệu riêng theo MSSV</b>. Hãy đọc kỹ dữ kiện, <b>suy luận khoản nào cộng/trừ</b>, tính từng bước rồi nhập kết quả. Bấm <b>Kiểm tra</b> để biết đúng/sai (hệ thống không hiển thị đáp số; sai từ lần 2 sẽ có gợi ý). Cuối cùng bấm <b>Xuất PDF</b> để nộp giảng viên.</p>
+                </div>
+            </div>
+            <div class="bg-white p-5 rounded-xl border border-slate-200 shadow-md space-y-3">
+                <div class="grid grid-cols-1 md:grid-cols-4 gap-3 items-end">
+                    <div><label class="block text-xs font-semibold text-slate-700 mb-1">Họ và tên <span class="text-red-500">*</span></label>
+                        <input type="text" id="prac-name" class="w-full text-xs p-2.5 border rounded-lg focus:ring-2 focus:ring-violet-500 outline-none"></div>
+                    <div><label class="block text-xs font-semibold text-slate-700 mb-1">MSSV <span class="text-red-500">*</span></label>
+                        <input type="text" id="prac-id" class="w-full text-xs p-2.5 border rounded-lg focus:ring-2 focus:ring-violet-500 outline-none"></div>
+                    <div><label class="block text-xs font-semibold text-slate-700 mb-1">Khổ trang PDF</label>
+                        <select id="prac-orient" class="w-full text-xs p-2.5 border rounded-lg font-semibold"><option value="p">A4 Dọc</option><option value="l">A4 Ngang</option></select></div>
+                    <button onclick="startPractice()" class="bg-violet-600 hover:bg-violet-700 text-white font-bold text-xs px-3 py-2.5 rounded-lg shadow flex items-center justify-center gap-1"><i data-lucide="shuffle" class="w-4 h-4"></i> Tạo đề của tôi</button>
+                </div>
+            </div>
+            <div id="prac-bar" class="hidden sticky top-[76px] z-40 bg-white/95 backdrop-blur border border-violet-200 rounded-xl shadow p-3 flex flex-wrap items-center justify-between gap-3">
+                <div class="text-xs text-slate-700"><b>Mã đề:</b> <span id="prac-code" class="font-mono"></span> &nbsp;|&nbsp; <b>Đúng:</b> <span id="prac-ok">0</span>/<span id="prac-total">0</span> ý &nbsp;|&nbsp; <b>Điểm tạm tính:</b> <span id="prac-score" class="text-violet-700 font-bold text-sm">0</span>/100</div>
+                <div class="flex gap-2">
+                    <button onclick="checkAllPractice()" class="bg-sky-600 hover:bg-sky-700 text-white font-bold text-xs px-3 py-1.5 rounded shadow">Kiểm tra tất cả</button>
+                    <button onclick="exportPracticePDF()" class="bg-emerald-600 hover:bg-emerald-700 text-white font-bold text-xs px-3 py-1.5 rounded shadow flex items-center gap-1"><i data-lucide="download" class="w-4 h-4"></i> Xuất PDF nộp bài</button>
+                </div>
+            </div>
+            <div id="prac-list" class="space-y-5"><p class="text-center text-xs text-slate-500 py-10">Nhập Họ tên, MSSV rồi bấm <b>Tạo đề của tôi</b> để bắt đầu.</p></div>
         </section>
 
     </main>
@@ -1211,6 +1245,185 @@
                 </div>
             `).join('');
             lucide.createIcons();
+        }
+
+        // ===== TAB THỰC HÀNH =====
+        let prac = null;
+        const fN = n => Number(n).toLocaleString('vi-VN', {maximumFractionDigits: 2});
+        const esc = s => String(s).replace(/[&<>]/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;'}[c]));
+        function parseNum(s) {
+            s = String(s).trim().replace(/\s/g, '').replace(/[^\d.,-]/g, '');
+            if (!s) return NaN;
+            const c = s.includes(','), d = s.includes('.');
+            if (c && d) s = s.lastIndexOf(',') > s.lastIndexOf('.') ? s.replace(/\./g, '').replace(',', '.') : s.replace(/,/g, '');
+            else if (c) s = (/,\d{1,2}$/.test(s) && s.split(',').length === 2) ? s.replace(',', '.') : s.replace(/,/g, '');
+            else if (d) s = (s.split('.').length > 2 || /\.\d{3}$/.test(s)) ? s.replace(/\./g, '') : s;
+            return parseFloat(s);
+        }
+        function chainTax(c, nk, tt, pv, vat) {
+            const a = Math.round(c * nk / 100), b = Math.round((c + a) * tt / 100), d = Math.round(c * pv / 100), e = Math.round((c + a + b + d) * vat / 100);
+            return {nk: a, tt: b, pv: d, vat: e, tot: a + b + d + e};
+        }
+        function genPractice(seed) {
+            let s = seed;
+            const R = () => { s |= 0; s = s + 0x6D2B79F5 | 0; let t = Math.imul(s ^ s >>> 15, 1 | s); t = t + Math.imul(t ^ t >>> 7, 61 | t) ^ t; return ((t ^ t >>> 14) >>> 0) / 4294967296; };
+            const ri = (a, b, st = 1) => a + Math.floor(R() * ((b - a) / st + 1)) * st;
+            const pk = a => a[Math.floor(R() * a.length)];
+            const rate = pk([24000, 24500, 25000, 25400, 25700]);
+            const N = (k, label, ans, u) => ({k, label, ans, u, t: 'n'});
+            const S = (k, label, opts, ans) => ({k, label, opts, ans, t: 's'});
+            const CK = ['Cộng', 'Không cộng'];
+            const T = [];
+            // TH1: FOB + điều chỉnh
+            { const q = ri(200, 800, 50), p = ri(20, 60, 2), F = ri(800, 2000, 100), I = ri(100, 400, 50), hh = ri(300, 900, 50), hm = ri(200, 600, 50), bb = ri(400, 1200, 100), roy = ri(2, 6), nd = ri(500, 1500, 100), lv = ri(300, 800, 100);
+              const inv = q * p, add = hh + bb + inv * roy / 100, cif = inv + F + I + add;
+              T.push({title: 'Tình huống 1 – Xác định trị giá CIF từ giá FOB (có điều chỉnh)',
+                info: [`Nhập ${q} sản phẩm, đơn giá hóa đơn <b>FOB ${p} USD/sp</b>. Cước vận tải quốc tế <b>${fN(F)} USD</b>, bảo hiểm quốc tế <b>${fN(I)} USD</b>. Tỷ giá <b>${fN(rate)} VNĐ/USD</b>.`, 'Người mua còn có các khoản sau (ngoài hóa đơn). Hãy xác định từng khoản có cộng vào trị giá hải quan hay không:'],
+                f: [S('a', `Hoa hồng bán hàng người mua trả cho đại lý của người bán: ${fN(hh)} USD`, CK, 'Cộng'), S('b', `Hoa hồng mua hàng trả cho đại lý của chính người mua: ${fN(hm)} USD`, CK, 'Không cộng'), S('c', `Chi phí bao bì gắn liền hàng hóa: ${fN(bb)} USD`, CK, 'Cộng'), S('d', `Phí bản quyền ${roy}% giá hóa đơn (điều kiện bắt buộc của việc bán hàng)`, CK, 'Cộng'), S('e', `Vận chuyển nội địa VN từ cảng về kho: ${fN(nd)} USD`, CK, 'Không cộng'), S('g', `Lãi vay thể hiện riêng, lãi suất thông thường: ${fN(lv)} USD`, CK, 'Không cộng'),
+                  N('h', 'Tổng các khoản điều chỉnh cộng', add, 'USD'), N('i', 'Trị giá CIF', cif, 'USD'), N('j', 'Trị giá hải quan quy đổi', Math.round(cif * rate), 'VNĐ')],
+                hint: 'CIF = Giá hóa đơn FOB + F + I + các khoản cộng. Hoa hồng MUA HÀNG, chi phí sau nhập khẩu và lãi vay tách riêng không cộng.'}); }
+            // TH2: EXW + chiết khấu
+            { const q = ri(200, 600, 50), p = ri(30, 80, 2), d = ri(2, 10), ni = ri(500, 1500, 100), lo = ri(200, 600, 50), F = ri(1500, 3500, 100), I = ri(150, 400, 50), dt = ri(200, 500, 50), kd = ri(300, 700, 50);
+              const paid = q * p * (100 - d) / 100, cif = paid + ni + lo + F + I;
+              T.push({title: 'Tình huống 2 – Điều kiện EXW và chiết khấu thương mại',
+                info: [`Nhập ${q} sản phẩm giá <b>EXW ${p} USD/sp</b>; chiết khấu thương mại <b>${d}%</b> đã ghi trên hóa đơn và được hưởng thực tế. Tỷ giá ${fN(rate)} VNĐ/USD.`, `Chi phí: vận chuyển nội địa nước xuất khẩu ${fN(ni)} USD; bốc hàng lên tàu tại cảng đi ${fN(lo)} USD; cước quốc tế ${fN(F)} USD; bảo hiểm ${fN(I)} USD; phí dỡ hàng tại cảng đến (DTHC) ${fN(dt)} USD; phí kiểm định tại VN sau thông quan ${fN(kd)} USD.`],
+                f: [S('a', 'Bốc hàng lên tàu tại cảng đi', CK, 'Cộng'), S('b', 'Phí dỡ hàng tại cảng đến (DTHC)', CK, 'Không cộng'), S('c', 'Phí kiểm định sau thông quan tại VN', CK, 'Không cộng'),
+                  N('d', 'Giá thực trả sau chiết khấu', paid, 'USD'), N('e', 'Trị giá CIF', cif, 'USD'), N('g', 'Trị giá hải quan quy đổi', Math.round(cif * rate), 'VNĐ')],
+                hint: 'Lấy giá thực trả (đã trừ chiết khấu) + mọi chi phí đến cửa khẩu nhập đầu tiên. Chi phí phát sinh sau khi hàng đến cửa khẩu không tính.'}); }
+            // TH3: FTA / C/O
+            { const cif = ri(40000, 120000, 5000), m = pk([10, 15, 20, 25]), fr = pk([0, 5]), mo = pk([8, 14]);
+              const v = cif * rate, nkM = Math.round(v * m / 100), ok = mo <= 12, pay = ok ? Math.round(v * fr / 100) : nkM;
+              T.push({title: 'Tình huống 3 – Chọn thuế suất MFN / FTA theo C/O',
+                info: [`Lô hàng xuất xứ nước thành viên WTO, trị giá <b>CIF ${fN(cif)} USD</b>, tỷ giá ${fN(rate)} VNĐ/USD. Thuế suất MFN <b>${m}%</b>; thuế suất ưu đãi đặc biệt (FTA) <b>${fr}%</b>; thuế suất thông thường = 150% MFN.`, `C/O Form hợp lệ về hình thức nhưng được cấp <b>${mo} tháng</b> trước ngày đăng ký tờ khai.`],
+                f: [S('a', 'Thuế suất áp dụng cho lô hàng', ['MFN', 'FTA', 'Thông thường'], ok ? 'FTA' : 'MFN'), N('b', 'Thuế NK nếu áp MFN', nkM, 'VNĐ'), N('c', 'Thuế NK thực tế phải nộp', pay, 'VNĐ'), N('d', 'Số thuế được giảm nhờ C/O', nkM - pay, 'VNĐ')],
+                hint: 'C/O chỉ có hiệu lực tối đa 12 tháng kể từ ngày cấp. Hết hạn thì áp thuế suất MFN (không phải thông thường vì nước thuộc WTO).'}); }
+            // TH4: chuỗi thuế NK-TTĐB-VAT
+            { const cif = ri(20000, 60000, 2000), nk = pk([20, 30, 50, 70]), tt = pk([35, 45, 50, 65]), c = cif * rate, x = chainTax(c, nk, tt, 0, 10);
+              T.push({title: 'Tình huống 4 – Thuế NK, TTĐB, VAT (hàng chịu thuế TTĐB)',
+                info: [`Nhập 1 lô hàng chịu thuế TTĐB, <b>CIF ${fN(cif)} USD</b>, tỷ giá ${fN(rate)} VNĐ/USD. Thuế NK <b>${nk}%</b>, TTĐB <b>${tt}%</b>, VAT <b>10%</b>.`],
+                f: [N('a', 'Trị giá CIF quy đổi', c, 'VNĐ'), N('b', 'Thuế NK', x.nk, 'VNĐ'), N('c', 'Thuế TTĐB', x.tt, 'VNĐ'), N('d', 'Thuế VAT', x.vat, 'VNĐ'), N('e', 'Tổng thuế phải nộp', x.tot, 'VNĐ')],
+                hint: 'Thứ tự: NK = CIF × t%; TTĐB = (CIF + NK) × t%; VAT = (CIF + NK + TTĐB) × 10%.'}); }
+            // TH5: thuế phòng vệ
+            { const cif = ri(50000, 150000, 10000), nk = pk([5, 10, 15]), pv = pk([10, 15, 20]), c = cif * rate, x = chainTax(c, nk, 0, pv, 10);
+              T.push({title: 'Tình huống 5 – Thuế phòng vệ thương mại và tổng chi phí',
+                info: [`Thép nhập khẩu <b>CIF ${fN(cif)} USD</b>, tỷ giá ${fN(rate)} VNĐ/USD. Thuế NK <b>${nk}%</b>, thuế chống bán phá giá <b>${pv}%</b>, VAT <b>10%</b> (không chịu TTĐB).`],
+                f: [N('a', 'Thuế NK', x.nk, 'VNĐ'), N('b', 'Thuế chống bán phá giá', x.pv, 'VNĐ'), N('c', 'Thuế VAT', x.vat, 'VNĐ'), N('d', 'Tổng thuế phải nộp', x.tot, 'VNĐ'), N('e', 'Tổng chi phí lô hàng (CIF + thuế)', c + x.tot, 'VNĐ')],
+                hint: 'Thuế phòng vệ tính trên CIF. Giá tính VAT = CIF + NK + thuế phòng vệ.'}); }
+            // TH6: PP khấu trừ
+            { const q = ri(100, 500, 50), S0 = ri(800, 1600, 50) * 1000, g = pk([10, 12, 15, 20]), tr = ri(20, 60, 5) * 1000, n = ri(50, 150, 10) * 1000;
+              const gm = S0 * g / 100, u = S0 - gm - tr - n;
+              T.push({title: 'Tình huống 6 – Phương pháp khấu trừ (Phương pháp 4)',
+                info: [`Hàng nhập khẩu được bán lại nguyên trạng tại VN, số lượng lớn nhất <b>${q} sản phẩm</b>, đơn giá bán <b>${fN(S0)} VNĐ/sp</b> (chưa VAT).`, `Lợi nhuận và chi phí chung <b>${g}%</b> giá bán; vận chuyển, bảo hiểm nội địa <b>${fN(tr)} VNĐ/sp</b>; thuế NK phải nộp <b>${fN(n)} VNĐ/sp</b>.`],
+                f: [N('a', 'Lợi nhuận và chi phí chung / sp', gm, 'VNĐ'), N('b', 'Trị giá hải quan / sản phẩm', u, 'VNĐ'), N('c', 'Trị giá hải quan cả lô', u * q, 'VNĐ')],
+                hint: 'Trị giá = Giá bán lại − lợi nhuận & chi phí chung − vận chuyển, bảo hiểm nội địa − thuế NK phải nộp.'}); }
+            // TH7: PP tính toán
+            { const nv = ri(20000, 50000, 2500), cb = ri(8000, 20000, 1000), x = pk([8, 10, 15]), F = ri(1000, 3000, 100), I = ri(100, 400, 50);
+              const ln = (nv + cb) * x / 100, cif = nv + cb + ln + F + I;
+              T.push({title: 'Tình huống 7 – Phương pháp tính toán (Phương pháp 5)',
+                info: [`Nhà sản xuất nước ngoài cung cấp: nguyên vật liệu <b>${fN(nv)} USD</b>; chi phí gia công <b>${fN(cb)} USD</b>; lợi nhuận và chi phí chung <b>${x}%</b> trên (nguyên vật liệu + gia công). Cước quốc tế ${fN(F)} USD, bảo hiểm ${fN(I)} USD. Tỷ giá ${fN(rate)} VNĐ/USD.`],
+                f: [N('a', 'Lợi nhuận và chi phí chung', ln, 'USD'), N('b', 'Trị giá hải quan (CIF)', cif, 'USD'), N('c', 'Trị giá hải quan quy đổi', Math.round(cif * rate), 'VNĐ')],
+                hint: 'Trị giá = Nguyên vật liệu + Gia công + Lợi nhuận & chi phí chung + F + I.'}); }
+            // TH8: tổng hợp
+            { const fob = ri(80000, 200000, 10000), F = ri(5000, 12000, 500), I = ri(1000, 3000, 250), as = ri(2000, 8000, 500), dg = ri(1000, 4000, 500), nk = pk([5, 10, 15]), tt = pk([10, 20, 35]);
+              const cif = fob + F + I + as, c = cif * rate, x = chainTax(c, nk, tt, 0, 10);
+              T.push({title: 'Tình huống 8 – Tổng hợp: từ hồ sơ nhập khẩu đến tổng chi phí',
+                info: [`Nhập lô hàng giá <b>FOB ${fN(fob)} USD</b>; F <b>${fN(F)} USD</b>; I <b>${fN(I)} USD</b>. Người mua cấp miễn phí khuôn mẫu mua ở nước ngoài trị giá <b>${fN(as)} USD</b>, và chi phí thiết kế do người mua thực hiện tại Việt Nam <b>${fN(dg)} USD</b>.`, `Tỷ giá ${fN(rate)} VNĐ/USD; thuế NK <b>${nk}%</b>, TTĐB <b>${tt}%</b>, VAT <b>10%</b>.`],
+                f: [S('a', 'Chi phí thiết kế thực hiện tại Việt Nam', CK, 'Không cộng'), N('b', 'Trị giá CIF', cif, 'USD'), N('c', 'Trị giá hải quan quy đổi', c, 'VNĐ'), N('d', 'Thuế NK', x.nk, 'VNĐ'), N('e', 'Thuế TTĐB', x.tt, 'VNĐ'), N('g', 'Thuế VAT', x.vat, 'VNĐ'), N('h', 'Tổng chi phí lô hàng (CIF + toàn bộ thuế)', c + x.tot, 'VNĐ')],
+                hint: 'Trợ giúp (assist) ở nước ngoài thì cộng; thực hiện tại VN thì không. Sau đó chạy chuỗi NK → TTĐB → VAT.'}); }
+            return T;
+        }
+        function startPractice() {
+            const name = document.getElementById('prac-name').value.trim(), id = document.getElementById('prac-id').value.trim();
+            if (!name || !id) { alert('VUI LÒNG NHẬP HỌ TÊN VÀ MSSV TRƯỚC KHI TẠO ĐỀ!'); return; }
+            if (prac && !confirm('Tạo lại đề sẽ xóa toàn bộ bài đang làm. Tiếp tục?')) return;
+            const seed = hashSeed(id);
+            prac = {name, id, seed, tasks: genPractice(seed)};
+            document.getElementById('prac-code').textContent = seed.toString(16).toUpperCase();
+            document.getElementById('prac-bar').classList.remove('hidden');
+            renderPractice();
+        }
+        function hashSeed(s) { let h = 5381; for (const c of s.toUpperCase()) h = ((h << 5) + h + c.charCodeAt(0)) >>> 0; return h; }
+        function renderPractice() {
+            document.getElementById('prac-list').innerHTML = prac.tasks.map((t, i) => `
+                <div class="bg-white rounded-xl border border-slate-200 shadow-md overflow-hidden">
+                    <div class="bg-violet-100 px-4 py-2.5 flex justify-between items-center border-b border-violet-200">
+                        <span class="font-bold text-violet-950 text-sm">${t.title}</span><span class="text-[10px] bg-white text-violet-700 font-bold px-2 py-0.5 rounded">${i + 1}/${prac.tasks.length}</span>
+                    </div>
+                    <div class="p-4 space-y-3">
+                        <div class="bg-slate-50 border border-slate-200 rounded-lg p-3 text-xs text-slate-700 space-y-1.5">${t.info.map(x => `<p>${x}</p>`).join('')}</div>
+                        <div>${t.f.map(f => `
+                            <div class="flex flex-col md:flex-row md:items-center gap-1 md:gap-3 py-1.5 border-b border-slate-100">
+                                <label class="text-xs text-slate-700 md:w-3/5">${f.label}</label>
+                                <div class="flex items-center gap-2 md:w-2/5">
+                                    ${f.t === 's' ? `<select id="pf-${i}-${f.k}" class="flex-1 text-xs p-2 border border-slate-300 rounded-lg"><option value="">-- Chọn --</option>${f.opts.map(o => `<option>${o}</option>`).join('')}</select>`
+                                    : `<input id="pf-${i}-${f.k}" type="text" inputmode="decimal" placeholder="Nhập kết quả" class="flex-1 text-xs p-2 border border-slate-300 rounded-lg"><span class="text-[11px] text-slate-500 w-9">${f.u}</span>`}
+                                    <span id="pst-${i}-${f.k}" class="text-sm font-bold w-4"></span>
+                                </div>
+                            </div>`).join('')}</div>
+                        <div><label class="block text-xs font-semibold text-slate-700 mb-1">Trình bày suy luận và các bước tính (bắt buộc – được in vào PDF):</label>
+                            <textarea id="pr-${i}" rows="3" class="w-full text-xs p-2.5 border border-slate-300 rounded-lg focus:ring-2 focus:ring-violet-500 outline-none" placeholder="Ví dụ: Trị giá CIF = ... + ... = ...; vì khoản ... không cộng do ..."></textarea></div>
+                        <div class="flex items-center gap-3">
+                            <button onclick="checkTask(${i})" class="bg-violet-600 hover:bg-violet-700 text-white font-bold text-xs px-4 py-1.5 rounded shadow">Kiểm tra</button>
+                            <span id="pmsg-${i}" class="text-xs"></span>
+                        </div>
+                    </div>
+                </div>`).join('');
+            updPractice();
+        }
+        function checkTask(i, silent) {
+            const t = prac.tasks[i]; t.st = {}; let bad = 0;
+            t.f.forEach(f => {
+                const el = document.getElementById(`pf-${i}-${f.k}`), v = el.value; let ok;
+                if (f.t === 's') ok = v === f.ans;
+                else { const x = parseNum(v); ok = !isNaN(x) && Math.abs(x - f.ans) <= Math.max(1, Math.abs(f.ans) * 1e-4); }
+                t.st[f.k] = ok; if (!ok) bad++;
+                el.classList.remove('border-emerald-500', 'bg-emerald-50', 'border-red-400', 'bg-red-50');
+                if (ok) el.classList.add('border-emerald-500', 'bg-emerald-50'); else if (v !== '') el.classList.add('border-red-400', 'bg-red-50');
+                document.getElementById(`pst-${i}-${f.k}`).innerHTML = ok ? '<span class="text-emerald-600">✓</span>' : (v === '' ? '' : '<span class="text-red-500">✗</span>');
+            });
+            if (!silent) {
+                t.att = (t.att || 0) + 1;
+                const m = document.getElementById(`pmsg-${i}`);
+                m.className = 'text-xs ' + (bad ? 'text-amber-700' : 'text-emerald-700 font-bold');
+                m.innerHTML = bad ? `Còn ${bad} ý chưa đúng/chưa làm (lần kiểm tra ${t.att}).` + (t.att >= 2 ? ` <b>Gợi ý:</b> ${t.hint}` : '') : 'Hoàn thành chính xác tình huống này!';
+            }
+            updPractice();
+        }
+        function checkAllPractice() { prac.tasks.forEach((_, i) => checkTask(i)); }
+        function updPractice() {
+            let ok = 0, tot = 0;
+            prac.tasks.forEach(t => t.f.forEach(f => { tot++; if (t.st && t.st[f.k]) ok++; }));
+            document.getElementById('prac-ok').textContent = ok; document.getElementById('prac-total').textContent = tot;
+            document.getElementById('prac-score').textContent = (Math.round(1000 * ok / tot) / 10).toLocaleString('vi-VN');
+        }
+        function exportPracticePDF() {
+            if (!prac) return;
+            prac.tasks.forEach((_, i) => checkTask(i, true));
+            let ok = 0, tot = 0, body = '';
+            prac.tasks.forEach((t, i) => {
+                const rows = t.f.map(f => { tot++; const good = t.st[f.k]; if (good) ok++;
+                    const v = document.getElementById(`pf-${i}-${f.k}`).value.trim() || '(bỏ trống)';
+                    return `<tr><td style="border:1px solid #cbd5e1;padding:3px 5px;">${f.label}</td><td style="border:1px solid #cbd5e1;padding:3px 5px;white-space:nowrap;"><b>${esc(v)}</b> ${f.u || ''}</td><td style="border:1px solid #cbd5e1;padding:3px 5px;text-align:center;font-weight:bold;color:${good ? '#059669' : '#dc2626'};">${good ? 'Đúng' : 'Sai'}</td></tr>`; }).join('');
+                const rs = esc(document.getElementById(`pr-${i}`).value.trim() || '(Sinh viên chưa trình bày)').replace(/\n/g, '<br>');
+                body += `<div style="margin-bottom:12px;page-break-inside:avoid;border:1px solid #cbd5e1;border-radius:6px;padding:8px;">
+                    <div style="font-weight:bold;font-size:11px;color:#6d28d9;margin-bottom:4px;">${t.title}</div>
+                    <div style="font-size:9.5px;color:#334155;margin-bottom:5px;">${t.info.join('<br>')}</div>
+                    <table style="width:100%;border-collapse:collapse;font-size:9.5px;margin-bottom:5px;"><tr style="background:#f1f5f9;"><th style="border:1px solid #cbd5e1;padding:3px 5px;text-align:left;">Đại lượng</th><th style="border:1px solid #cbd5e1;padding:3px 5px;text-align:left;">Kết quả sinh viên</th><th style="border:1px solid #cbd5e1;padding:3px 5px;">Hệ thống</th></tr>${rows}</table>
+                    <div style="font-size:9.5px;background:#faf5ff;border-left:3px solid #7c3aed;padding:5px;"><b>Suy luận / các bước tính:</b><br>${rs}</div>
+                    <div style="font-size:9px;color:#64748b;margin-top:3px;">Số lần kiểm tra: ${t.att || 0}</div></div>`;
+            });
+            updPractice();
+            const score = (Math.round(1000 * ok / tot) / 10).toLocaleString('vi-VN');
+            const tpl = document.getElementById('pdf-export-template');
+            tpl.innerHTML = `<div style="font-family:Arial,sans-serif;padding:10px;">
+                <div style="text-align:center;border-bottom:2px solid #7c3aed;padding-bottom:8px;margin-bottom:12px;"><h2 style="margin:0;font-size:16px;color:#6d28d9;text-transform:uppercase;">BÀI THỰC HÀNH CHƯƠNG 4: THUẾ & TRỊ GIÁ HẢI QUAN</h2></div>
+                <table style="width:100%;font-size:11px;margin-bottom:12px;background:#f1f5f9;border:1px solid #cbd5e1;"><tr><td style="width:50%;padding:4px;"><b>Họ và tên:</b> ${esc(prac.name)}</td><td style="padding:4px;"><b>MSSV:</b> ${esc(prac.id)}</td></tr>
+                <tr><td style="padding:4px;"><b>Ngày nộp:</b> ${new Date().toLocaleDateString('vi-VN')}</td><td style="padding:4px;"><b>Mã đề:</b> ${prac.seed.toString(16).toUpperCase()}</td></tr>
+                <tr><td colspan="2" style="padding:4px;"><b>Kết quả hệ thống:</b> ${ok}/${tot} ý đúng – <b>${score}/100 điểm</b></td></tr></table>
+                ${body}
+                <div style="margin-top:16px;text-align:right;font-size:10px;color:#64748b;border-top:1px solid #e2e8f0;padding-top:6px;">Chữ ký sinh viên: .......................................</div></div>`;
+            html2pdf().set({margin: 8, filename: `Thuc_Hanh_${prac.id}_${prac.name.replace(/\s+/g, '_')}.pdf`, image: {type: 'jpeg', quality: 0.98}, html2canvas: {scale: 2, useCORS: true},
+                jsPDF: {unit: 'mm', format: 'a4', orientation: document.getElementById('prac-orient').value === 'l' ? 'landscape' : 'portrait'}}).from(tpl).save();
         }
 
         // INITIALIZATION
